@@ -1,0 +1,67 @@
+// Workspace settings for myetl (shared via git).
+// Tools run from the uv-managed .venv, so the editor uses the same versions
+// as `make check` and CI (pinned in uv.lock). Tool configuration lives in
+// pyproject.toml.
+{
+  // Python
+  // Interpreter: the project venv created by `make sync`.
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+
+  // Pylance: completion and navigation only.
+  "python.analysis.typeCheckingMode": "off",
+
+  // Test Explorer: pytest picks up testpaths/addopts from pyproject.toml.
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [],
+
+  // Ruff
+  // Use ruff from .venv and let pyproject.toml win over
+  // any user-level editor settings, so the editor matches CI.
+  "ruff.importStrategy": "fromEnvironment",
+  "ruff.configurationPreference": "filesystemFirst",
+
+  // mypy
+  // Use mypy from .venv. It reads [tool.mypy] (strict) from pyproject.toml
+  // in the workspace folder (default cwd).
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+
+  // Per-language
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    },
+    "editor.rulers": [72, 79]
+  },
+  // pyproject.toml is also edited by uv.
+  "[toml]": {
+    "editor.formatOnSave": false
+  },
+  // Make recipes require literal tabs.
+  "[makefile]": {
+    "editor.insertSpaces": false,
+    "editor.detectIndentation": false
+  },
+
+  // Files
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "uv.lock": true
+  },
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/.mypy_cache/**": true
+  }
+}

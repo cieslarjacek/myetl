@@ -1,0 +1,102 @@
+[project]
+name = "myetl"
+# PEP 440 release segment:
+# DEV builds X.X.X.XXXX, TEST/PROD releases X.X.X (enforced in CI, step 8).
+version = "0.0.0.9000"
+description = "ETL pipeline for EU/EEA electricity data (renewables vs fossil), served over an internal FastAPI service."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Jacek Cieslar" }]
+requires-python = "==3.13.*"
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "Private :: Do Not Upload",
+]
+# Runtime dependencies are added in the steps that first use them.
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/cieslarjacek/myetl"
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+# PEP 735 groups; `uv sync` installs "dev" by default.
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "pycodestyle>=2.15",
+    "pytest>=9.1",
+    "pytest-cov>=7.1",
+    "ruff>=0.17",
+]
+
+# --------------------------------------------------------------------------- #
+# Ruff: formatter + linter                                                     #
+# PEP 8 limits: 79 characters for code, 72 for docstrings and comments.        #
+# PEP 8 whitespace/blank-line rules that ruff has only in preview are checked  #
+# by pycodestyle, the PEP 8 reference checker (see `make lint`).               #
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+line-length = 79
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming (PEP 8 naming conventions)
+    "D",   # pydocstyle (Google style, convention below)
+    "UP",  # pyupgrade (PEP 585/604 typing syntax, etc.)
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (security)
+    "SIM", # flake8-simplify
+    "PT",  # flake8-pytest-style
+    "RUF", # ruff-specific
+]
+
+[tool.ruff.lint.pycodestyle]
+# W505: PEP 8 limit for docstrings and comments.
+max-doc-length = 72
+
+[tool.ruff.lint.pydocstyle]
+# Project exception to "PEP everywhere": Google-style docstrings
+# (Args/Returns/Raises sections) instead of the pep257 convention.
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: no docstring requirement; plain `assert` is the pytest idiom.
+"tests/**/*.py" = ["D", "S101"]
+
+# --------------------------------------------------------------------------- #
+# mypy                                                                         #
+# --------------------------------------------------------------------------- #
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["src", "tests"]
+warn_unreachable = true
+
+# --------------------------------------------------------------------------- #
+# pytest + coverage                                                            #
+# --------------------------------------------------------------------------- #
+[tool.pytest.ini_options]
+minversion = "9.1"
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
+markers = [
+    "integration: tests that exercise several components together (recorded HTTP only, no live network)",
+]
+
+[tool.coverage.run]
+source = ["myetl"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
