@@ -1,0 +1,32 @@
+# Python bytecode and build output
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+
+# Virtual environment (managed by uv)
+.venv/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local configuration and secrets
+.env
+*.env
+
+# Runtime data: local raw-data cache and pipeline output.
+# Not "*.csv": recorded test fixtures (tests/fixtures/) are CSV and are tracked.
+/data/
+
+# Editors and OS
+.idea/
+.DS_Store
