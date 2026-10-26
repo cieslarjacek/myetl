@@ -6,18 +6,24 @@ merges them into one table, and serves the pipeline through an internal
 FastAPI service that a portfolio Shiny app calls to run it and download the
 result as CSV.
 
-> **Status:** work in progress. Only the package skeleton exists so far.
+> **Status:** work in progress. Package skeleton and source contracts so
+> far; the pipeline itself is not implemented yet.
 
 ## Data sources
 
-| Source | Content | Access |
-|---|---|---|
-| Our World in Data, energy dataset | Electricity generation by source | CSV download |
-| Eurostat | Official renewable-energy share, household electricity prices | REST API |
-| World Bank | GDP per capita, population | REST API |
+| Source | Content | Access | Licence |
+|---|---|---|---|
+| Our World in Data, energy dataset (based on Ember) | Electricity generation by source, shares, carbon intensity | CSV download | CC BY 4.0 |
+| Eurostat (`nrg_ind_ren`, `nrg_pc_204`, `nrg_cb_pem`) | Official renewable-energy share, semi-annual household electricity prices, monthly net generation | SDMX API (CSV) | Reuse with acknowledgement (Decision 2011/833/EU) |
+| World Bank, World Development Indicators | GDP (PPP), population | REST API (paginated JSON) | CC BY 4.0 |
 
-Exact datasets, indicators and licence terms are documented once the source
-contracts are verified.
+Raw data is fetched as broadly as it comes (whole files, all countries and
+aggregates); the pipeline selects, matches countries by name or code,
+aggregates monthly and semi-annual data to years and derives per-capita
+values. Output scope: EU27 + Norway + Iceland, from 2000, one row per
+country and year.
+Requests, licences, attribution and the output columns are specified in
+[docs/data-contract.md](docs/data-contract.md).
 
 ## Development
 
@@ -28,6 +34,7 @@ pinned Python version (3.13) if it is missing.
 make sync    # create .venv from uv.lock
 make check   # format check, lint, type check, tests
 make help    # list all recipes
+make fixtures  # re-record test fixtures from the live sources
 ```
 
 ### Conventions

@@ -1,4 +1,4 @@
-"""Smoke tests for the package skeleton (step 1).
+"""Smoke tests for the package skeleton.
 
 They verify that the src-layout package is installed into the
 environment (not imported from the working tree) and that its metadata

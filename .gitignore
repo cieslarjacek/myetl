@@ -30,3 +30,6 @@ htmlcov/
 # Editors and OS
 .idea/
 .DS_Store
+
+# Other
+local_testing.ipynb
