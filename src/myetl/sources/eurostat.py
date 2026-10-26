@@ -7,24 +7,30 @@ include every country and aggregate (EU27, euro area, ...).
 """
 
 __all__ = [
+    "API_BASE_URL",
     "DATAFLOW_VERSION",
+    "FORMAT_PARAMS",
     "HOUSEHOLD_PRICE",
     "LABEL_SEPARATOR",
     "MONTHLY_GENERATION",
     "REQUEST_URL_SETTINGS",
     "REQUIRED_COLUMNS",
     "RES_SHARE",
+    "URL_SAFE_CHARACTERS",
     "Dataset",
     "DimensionFilter",
+    "Period",
+    "PeriodRange",
+    "RequestUrlSettings",
     "extract_country_label",
 ]
 
 from dataclasses import dataclass
-from typing import Final, TypedDict
+from typing import Final
 from urllib.parse import urlencode
 
 #: SDMX 3.0 data endpoint for Eurostat dataflows.
-API_BASE_URI: Final[str] = (
+API_BASE_URL: Final[str] = (
     "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/"
     "dataflow/ESTAT"
 )
@@ -40,69 +46,68 @@ FORMAT_PARAMS: Final[tuple[tuple[str, str], ...]] = (
     ("compress", "false"),
 )
 
+#: Characters kept unescaped in the query, for readable URLs.
+URL_SAFE_CHARACTERS: Final[str] = "[],:"
+
 #: Separates the code from the label in a coded value.
 LABEL_SEPARATOR: Final[str] = ": "
 
 #: SDMX-CSV columns the project reads (besides the ``geo`` column).
 REQUIRED_COLUMNS: Final[tuple[str, ...]] = ("TIME_PERIOD", "OBS_VALUE")
 
+#: A period in a dataset's frequency (``"2008"``, ``"2008-S1"`` or
+#: ``"2008-01"``). ``None`` leaves that end of a range open.
+type Period = str | None
 
-class RequestSettingsDict(TypedDict):
-    """Settings for building the data request URL."""
-
-    #: SDMX 3.0 data endpoint for Eurostat dataflows.
-    base_uri: str
-    #: Response format: SDMX-CSV 2.0, uncompressed, coded values
-    #: labelled.
-    format_params: tuple[tuple[str, str], ...]
-    #: Characters kept unescaped in the query, for readable URLs.
-    safe_characters: str
+#: Inclusive ``(since, until)`` periods.
+type PeriodRange = tuple[Period, Period]
 
 
-#: Request URL settings.
-REQUEST_URL_SETTINGS: Final[RequestSettingsDict] = {
-    "base_uri": (
-        "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/"
-        "dataflow/ESTAT"
-    ),
-    "format_params": (
-        ("format", "csvdata"),
-        ("formatVersion", "2.0"),
-        ("labels", "both"),
-        ("compress", "false"),
-    ),
-    "safe_characters": "[],:",
-}
+@dataclass(frozen=True, slots=True)
+class RequestUrlSettings:
+    """How request URLs are built.
 
-#: Time period types.
-type DateValue = str | None
-type DateRange = tuple[DateValue, DateValue] | None
+    The defaults are the module constants, so the pipeline uses
+    :data:`REQUEST_URL_SETTINGS`. Other values are for tests.
+
+    Attributes:
+        base_url: Data endpoint. The dataset code and version are
+            appended to it.
+        format_params: Query parameters that select the response
+            format.
+        safe_characters: Characters kept unescaped in the query.
+    """
+
+    base_url: str = API_BASE_URL
+    format_params: tuple[tuple[str, str], ...] = FORMAT_PARAMS
+    safe_characters: str = URL_SAFE_CHARACTERS
+
+
+#: Request URL settings used by the pipeline.
+REQUEST_URL_SETTINGS: Final[RequestUrlSettings] = RequestUrlSettings()
 
 
 def extract_country_label(
-    coded_value: str, data_separator: str = LABEL_SEPARATOR
+    coded_value: str, *, separator: str = LABEL_SEPARATOR
 ) -> str:
-    """Return the label part of a coded value.
+    """Return the label part of a coded ``geo`` value.
 
-    Coded value is a character string that contains
-    EU-modified ISO 3166-1 alpha-2 country code and country name
-    separated by ": " (e.g. ``"EL: Greece"``).
+    A ``geo`` value holds a Eurostat code and an English label,
+    separated by :data:`LABEL_SEPARATOR`. The code is ISO 3166-1
+    alpha-2 for most countries, ``EL`` for Greece, or an aggregate
+    code such as ``EU27_2020``.
 
     Args:
-        coded_value: A value as returned with ``labels=both``.
-        data_separator: Separates the code from the label in a coded
-            value.
-
-    Returns:
-        The label (``"EL: Greece"`` gives ``"Greece"``) or an empty
-        string when the value carries no label.
+        coded_value: A ``geo`` value as returned with ``labels=both``.
+        separator: Separates the code from the label. Must match
+            the ``labels`` setting of the request.
     """
-    return coded_value.partition(data_separator)[2]
+    return coded_value.partition(separator)[2]
 
 
 @dataclass(frozen=True, slots=True)
 class DimensionFilter:
-    """A data dimension filter.
+    """A filter on one dimension of a dataset.
 
     Several values are combined with OR.
 
@@ -135,8 +140,8 @@ class Dataset:
 
     def create_request_url(
         self,
-        date_range: DateRange = None,
-        request_settings: RequestSettingsDict = REQUEST_URL_SETTINGS,
+        period_range: PeriodRange | None = None,
+        request_settings: RequestUrlSettings = REQUEST_URL_SETTINGS,
     ) -> str:
         """Build the request URL, optionally limited to a time range.
 
@@ -144,42 +149,39 @@ class Dataset:
         recording small test fixtures.
 
         Args:
-            date_range: A tuple of ``(since, until)`` inclusive periods
-                in the dataset's frequency (e.g. ``2008``, ``2008-S1``
-                or ``2008-01``). Either value can be ``None``.
-            request_settings: A dictionary with the settings for
-                the request URL. Must contain at least three elements
-                - "base_uri", "format_params" and "safe_characters".
+            period_range: First and last period (inclusive), or
+                ``None`` for the full time range.
+            request_settings: How the URL is built.
 
         Returns:
             Absolute URL for the SDMX-CSV 2.0 response.
         """
-        filters = [*self.filters, *_time_filter(date_range)]
+        filters = [*self.filters, *_time_filter(period_range)]
         query_params = [
-            *request_settings["format_params"],
-            *(elem.as_query_param() for elem in filters),
+            *request_settings.format_params,
+            *(
+                dimension_filter.as_query_param()
+                for dimension_filter in filters
+            ),
         ]
-        query = urlencode(
-            query_params, safe=request_settings["safe_characters"]
-        )
+        query = urlencode(query_params, safe=request_settings.safe_characters)
         dataset = self.dataset_code.upper()
-        return (
-            f"{request_settings['base_uri']}/{dataset}/{self.version}?{query}"
-        )
+        return f"{request_settings.base_url}/{dataset}/{self.version}?{query}"
 
 
-def _time_filter(date_range: DateRange) -> tuple[DimensionFilter, ...]:
+def _time_filter(
+    period_range: PeriodRange | None,
+) -> tuple[DimensionFilter, ...]:
     """Return the ``TIME_PERIOD`` filter for a range, if it has bounds.
 
     Args:
-        date_range: A ``(since, until)`` pair of inclusive periods or
-            ``None`` for no range. Either bound can be ``None``.
+        period_range: First and last period (inclusive) or ``None``
+            for no range.
 
     Returns:
-        One filter or none when the range is ``None`` (or both bounds
-        are ``None``).
+        One filter or none when there is no bound at all.
     """
-    since, until = date_range or (None, None)
+    since, until = period_range or (None, None)
     bounds = [
         f"{operator}:{period}"
         for operator, period in (("ge", since), ("le", until))

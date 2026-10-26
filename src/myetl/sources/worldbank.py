@@ -7,44 +7,87 @@ one-element array holding ``message``.
 """
 
 __all__ = [
+    "API_BASE_URL",
     "FIRST_YEAR",
+    "FORMAT_PARAMS",
     "GDP_PPP",
     "INDICATORS",
+    "PAGE_SIZE",
     "POPULATION",
+    "REQUEST_URL_SETTINGS",
+    "URL_SAFE_CHARACTERS",
     "Indicator",
+    "RequestUrlSettings",
 ]
 
 from dataclasses import dataclass
-from typing import Final, TypedDict
+from typing import Final
 from urllib.parse import urlencode
 
 from myetl.scope import YearRange
 
+#: Indicators API v2.
+API_BASE_URL: Final[str] = "https://api.worldbank.org/v2"
+
 #: First year requested; the PPP series start in 1990.
 FIRST_YEAR: Final[int] = 1990
 
+#: Response format: JSON (the API's default is XML).
+FORMAT_PARAMS: Final[tuple[tuple[str, str], ...]] = (("format", "json"),)
 
-class RequestSettingsDict(TypedDict):
-    """Settings for building the data request URL."""
+#: Rows per page requested by the pipeline.
+PAGE_SIZE: Final[int] = 1000
 
-    #: Indicators API v2.
-    base_uri: str
-    #: Response format: json, rows per page, starting page.
-    format_params: tuple[tuple[str, str | int], ...]
-    #: To keep the year range readable: "1990:2025", not "%3A".
-    safe_characters: str
+#: Kept unescaped so the year range stays readable ("1990:2025", not
+#: "1990%3A2025").
+URL_SAFE_CHARACTERS: Final[str] = ":"
 
 
-#: Request URL settings.
-REQUEST_URL_SETTINGS: Final[RequestSettingsDict] = {
-    "base_uri": ("https://api.worldbank.org/v2"),
-    "format_params": (
-        ("format", "json"),
-        ("per_page", 1000),
-        ("page", 1),
-    ),
-    "safe_characters": ":",
-}
+def _require_positive(name: str, value: int) -> None:
+    """Raise if ``value`` is less than 1.
+
+    Args:
+        name: Parameter name, for the error message.
+        value: Value to check.
+
+    Raises:
+        ValueError: If ``value`` is less than 1.
+    """
+    if value < 1:
+        raise ValueError(f"{name} must be >= 1, got {value}")
+
+
+@dataclass(frozen=True, slots=True)
+class RequestUrlSettings:
+    """How request URLs are built.
+
+    The defaults are the module constants, so the pipeline uses
+    :data:`REQUEST_URL_SETTINGS`; other values are for tests (for
+    example a small page size, to get several pages).
+
+    Attributes:
+        base_url: API endpoint; the indicator path is appended to it.
+        format_params: Query parameters that select the response
+            format.
+        page_size: Rows per page.
+        safe_characters: Characters kept unescaped in the query.
+
+    Raises:
+        ValueError: If ``page_size`` is less than 1.
+    """
+
+    base_url: str = API_BASE_URL
+    format_params: tuple[tuple[str, str], ...] = FORMAT_PARAMS
+    page_size: int = PAGE_SIZE
+    safe_characters: str = URL_SAFE_CHARACTERS
+
+    def __post_init__(self) -> None:
+        """Reject a page size below 1."""
+        _require_positive("page_size", self.page_size)
+
+
+#: Request URL settings used by the pipeline.
+REQUEST_URL_SETTINGS: Final[RequestUrlSettings] = RequestUrlSettings()
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,51 +104,33 @@ class Indicator:
 
     def create_request_url(
         self,
-        date_range: YearRange,
-        request_settings: RequestSettingsDict = REQUEST_URL_SETTINGS,
+        year_range: YearRange,
+        page: int = 1,
+        request_settings: RequestUrlSettings = REQUEST_URL_SETTINGS,
     ) -> str:
         """Build the request URL for one page, all economies.
 
         Args:
-            date_range: Range of years to request.
+            year_range: Years to request.
             page: 1-based page number.
-            request_settings: A dictionary with the settings for
-                the request URL. Must contain at least three elements
-                - "base_uri", "format_params" and "safe_characters".
+            request_settings: How the URL is built.
 
         Returns:
             Absolute URL for the JSON response.
 
         Raises:
-            ValueError: If ``page`` or ``per_page`` is less than 1.
+            ValueError: If ``page`` is less than 1.
         """
-        query_params = dict(
-            [
-                *request_settings["format_params"],
-                ("date", f"{date_range.first}:{date_range.last}"),
-            ]
-        )
-        _require_positive("page", int(query_params["page"]))
-        _require_positive("per_page", int(query_params["per_page"]))
-        query = urlencode(
-            query_params, safe=request_settings["safe_characters"]
-        )
+        _require_positive("page", page)
+        query_params = [
+            *request_settings.format_params,
+            ("date", f"{year_range.first}:{year_range.last}"),
+            ("per_page", str(request_settings.page_size)),
+            ("page", str(page)),
+        ]
+        query = urlencode(query_params, safe=request_settings.safe_characters)
         path = f"country/all/indicator/{self.indicator_code}"
-        return f"{request_settings['base_uri']}/{path}?{query}"
-
-
-def _require_positive(name: str, value: int) -> None:
-    """Raise if ``value`` is less than 1.
-
-    Args:
-        name: Parameter name, for the error message.
-        value: Value to check.
-
-    Raises:
-        ValueError: If ``value`` is less than 1.
-    """
-    if value < 1:
-        raise ValueError(f"{name} must be >= 1, got {value}")
+        return f"{request_settings.base_url}/{path}?{query}"
 
 
 #: GDP, PPP (constant 2021 international $), total. GDP per capita is

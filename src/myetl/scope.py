@@ -7,7 +7,7 @@ code, Eurostat by its English label (its responses carry no ISO code).
 
 __all__ = [
     "COUNTRIES",
-    "COUNTRY_NAMES",
+    "EUROSTAT_NAMES",
     "FIRST_YEAR",
     "ISO3_CODES",
     "Country",
@@ -25,7 +25,8 @@ class Country:
     Attributes:
         iso3: ISO 3166-1 alpha-3 code; the join key for OWID
             (``iso_code``) and the World Bank (``countryiso3code``).
-        name: English short name used in the output.
+        name: English short name used in the output; also the
+            Eurostat label unless ``eurostat_alias`` is set.
         eurostat_alias: Eurostat's label, only when it differs from
             ``name`` (``None`` for all countries today).
     """
@@ -36,7 +37,10 @@ class Country:
 
     @property
     def eurostat_name(self) -> str:
-        """Eurostat's English label: the join key for Eurostat."""
+        """Eurostat's English label, the join key for Eurostat.
+
+        ``eurostat_alias`` when set, otherwise ``name``.
+        """
         return self.eurostat_alias or self.name
 
 
@@ -61,7 +65,7 @@ class YearRange:
             raise ValueError(f"first {self.first} > last {self.last}")
 
     def __contains__(self, year: object) -> bool:
-        """Return whether ``year`` lies in the range."""
+        """Return whether ``year`` is an ``int`` within the range."""
         return isinstance(year, int) and self.first <= year <= self.last
 
 
@@ -98,12 +102,13 @@ COUNTRIES: Final[tuple[Country, ...]] = (
     Country("SWE", "Sweden"),
 )
 
-#: Join keys of the countries in scope, per identification scheme.
+#: Join keys of the countries in scope: ISO3 codes for OWID and the
+#: World Bank, labels for Eurostat.
 ISO3_CODES: Final[frozenset[str]] = frozenset(
     country.iso3 for country in COUNTRIES
 )
-COUNTRY_NAMES: Final[frozenset[str]] = frozenset(
-    country.name for country in COUNTRIES
+EUROSTAT_NAMES: Final[frozenset[str]] = frozenset(
+    country.eurostat_name for country in COUNTRIES
 )
 
 #: First year in the output. The last year comes from the data.
