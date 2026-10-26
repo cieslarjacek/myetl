@@ -42,7 +42,7 @@ dev = [
 [tool.ruff]
 line-length = 79
 target-version = "py313"
-src = ["src", "tests"]
+src = ["src", "tests", "scripts"]
 
 [tool.ruff.lint]
 select = [
@@ -80,6 +80,7 @@ convention = "google"
 python_version = "3.13"
 strict = true
 files = ["src", "tests", "scripts"]
+mypy_path = "scripts"
 warn_unreachable = true
 
 # --------------------------------------------------------------------------- #
@@ -88,6 +89,7 @@ warn_unreachable = true
 [tool.pytest.ini_options]
 minversion = "9.1"
 testpaths = ["tests"]
+pythonpath = ["scripts"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
 markers = [
     "integration: tests that exercise several components together (recorded HTTP only, no live network)",

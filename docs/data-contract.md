@@ -1,9 +1,10 @@
 # Data contract
 
 What `myetl` fetches, from where, under which terms and what the output
-CSV contains. The requests are implemented in
-[`src/myetl/sources.py`](../src/myetl/sources.py). This document and that
-module change together.
+CSV contains. The scope is implemented in
+[`src/myetl/scope.py`](../src/myetl/scope.py) and the requests in
+[`src/myetl/sources/`](../src/myetl/sources/), one module per source.
+This document and that code change together.
 
 Status: **draft for review** (step 2).
 
