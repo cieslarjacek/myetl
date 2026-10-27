@@ -6,7 +6,7 @@ CSV contains. The scope is implemented in
 [`src/myetl/sources/`](../src/myetl/sources/), one module per source.
 This document and that code change together.
 
-Status: **draft for review** (step 2).
+Status: **approved** (step 2, merged 2026-10-27).
 
 ## 1. Scope
 

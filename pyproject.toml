@@ -14,7 +14,9 @@ classifiers = [
     "Private :: Do Not Upload",
 ]
 # Runtime dependencies are added in the steps that first use them.
-dependencies = []
+dependencies = [
+    "httpx>=0.28",
+]
 
 [project.urls]
 Repository = "https://github.com/cieslarjacek/myetl"
