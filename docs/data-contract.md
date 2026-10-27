@@ -71,7 +71,7 @@ aggregating happen in the transform step.
 |---|---|---|---|---|
 | `nrg_ind_ren`: share of energy from renewable sources | annual | `FREQ=A`, `UNIT=PC`, `NRG_BAL=REN,REN_ELC` | 2004–2025 | as published |
 | `nrg_pc_204`: household electricity prices | semi-annual | `FREQ=S`, `SIEC=E7000`, `UNIT=KWH`, `NRG_CONS=KWH2500-4999` (band DC), `TAX=I_TAX` (all taxes and levies), `CURRENCY=EUR,PPS` | 2007-S1 – 2026-S1 with the current bands | mean of S1 and S2 |
-| `nrg_cb_pem`: net electricity generation by fuel | **monthly** | `FREQ=M`, `SIEC=TOTAL,RA000,CF,CF_R` (total, renewables and biofuels, combustible fuels, renewable combustible fuels), `UNIT=GWH` | `TOTAL` 2008-01 – 2026-08; `RA000`, `CF_R` 2017-01 – 2026-08 | sum of 12 months, GWh → TWh; fossil = `CF − CF_R` |
+| `nrg_cb_pem`: net electricity generation by fuel | **monthly** | `FREQ=M`, `SIEC=TOTAL,RA000,CF,CF_R` (total, renewables and biofuels, combustible fuels, renewable combustible fuels), `UNIT=GWH` | `TOTAL`, `CF` 2008-01 – 2026-08 (Croatia from 2011-01); `RA000` 2017-01 – 2026-08; `CF_R` 2017-01 – 2026-08 (Italy from 2019-03) | sum of 12 months, GWh → TWh; fossil = `CF − CF_R` |
 
 | Item | Value |
 |---|---|
@@ -92,8 +92,13 @@ period published.
 | 16–17 (household prices) | 2008 | 2007 for Croatia, Czechia, Germany, Luxembourg, the Netherlands and Sweden, which start in 2007-S1; 2012 for Iceland (starts 2012-S1) |
 | 18 (net generation) | 2008 | 2011 for Croatia |
 | 19 (renewables) | 2017 | none |
-| 20 (fossil, `CF − CF_R`) | 2017 | per-country exceptions to be confirmed by the next coverage run |
+| 20 (fossil, `CF − CF_R`) | 2017 | 2020 for Italy (`CF_R` starts 2019-03) |
 | 16–20 | | the current year stays empty until all its periods are published |
+
+The table shows where each series starts. A period missing inside a
+series also leaves that year empty (section 4, rule 3): for example,
+`CF_R` for the Netherlands has no value for 2017-07, so its 2017 fossil
+value is empty. The transform step reports every such gap.
 
 #### Fossil generation: `CF − CF_R`
 
@@ -198,8 +203,9 @@ is empty.
    periods are present: both halves for prices (mean), all 12 months for
    generation (sum). The current, incomplete year is therefore empty in
    columns 16–20.
-4. **Eurostat status flags** (for example `p` = provisional) are not
-   carried into the CSV. Provisional values are included as published.
+4. **Eurostat status flags** (for example `p` = provisional, `e` =
+   estimated) are not carried into the CSV. Flagged values are included
+   as published.
 5. **Two renewable shares on purpose.** `renewables_share_elec_pct`
    (Ember) is the share of actual generation in that year.
    `res_share_electricity_pct` (Eurostat) follows the EU Renewable Energy
@@ -229,6 +235,17 @@ aggregates and columns):
 |---|---|---|
 | OWID | all rows for 2008–2009, unchanged | `owid/owid-energy-data.csv` |
 | Eurostat | `nrg_ind_ren` 2008–2009; `nrg_pc_204` 2008-S1–2009-S1 (2009 incomplete on purpose); `nrg_cb_pem` 2017-01–2018-06 (the first months with every monthly series; 2018 incomplete on purpose) | `eurostat/{dataset}.csv`, byte for byte |
+
+Edge cases in the recorded Eurostat data (2026-10-27), for the transform
+tests:
+
+| Dataset | Case | Expected annual result |
+|---|---|---|
+| `nrg_pc_204` | Iceland has no rows | prices empty for Iceland |
+| `nrg_cb_pem` | Italy has no `CF_R` | fossil empty for Italy in 2017 |
+| `nrg_cb_pem` | `CF_R` for the Netherlands lacks 2017-07 | fossil empty for the Netherlands in 2017 |
+| `nrg_cb_pem` | values flagged `e` (Germany, Lithuania, Luxembourg) | used as published |
+| `nrg_cb_pem` | 2018 has only January–June | every monthly column empty for 2018 |
 | World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 `manifest.json` lists the recording time (UTC), URL, size and SHA-256 of
