@@ -45,13 +45,34 @@ def owid_all_countries(years: Iterable[int]) -> bytes:
     return owid_csv(rows)
 
 
-def eurostat_csv(labels: Iterable[str], geo_column: str = "geo") -> bytes:
+#: Header as Eurostat returns it with ``labels=both`` (2026-10-26).
+EUROSTAT_HEADER = (
+    "STRUCTURE",
+    "STRUCTURE_ID",
+    "freq: Time frequency",
+    "geo: Geopolitical entity (reporting)",
+    "TIME_PERIOD: Time",
+    "OBS_VALUE: Observation value",
+    "OBS_FLAG: Observation status (Flag) V2 structure",
+    "CONF_STATUS: Confidentiality status (flag)",
+)
+
+
+def eurostat_csv(
+    labels: Iterable[str], header: Iterable[str] = EUROSTAT_HEADER
+) -> bytes:
     """Build an SDMX-CSV 2.0 response with one row per geo label."""
-    lines = [f"STRUCTURE,STRUCTURE_ID,{geo_column},TIME_PERIOD,OBS_VALUE"]
+    lines = [",".join(header)]
     lines += [
-        f'dataflow,ESTAT:X(1.0),"XX: {label}",2008,1.0' for label in labels
+        f"dataflow,ESTAT:X(1.0),A: Annual,XX: {label},2008,1.0,,"
+        for label in labels
     ]
     return ("\n".join(lines) + "\n").encode()
+
+
+def header_without(code: str) -> list[str]:
+    """Return the Eurostat header without the column ``code``."""
+    return [name for name in EUROSTAT_HEADER if not name.startswith(code)]
 
 
 ALL_EUROSTAT_LABELS = [c.eurostat_name for c in COUNTRIES] + [
@@ -181,18 +202,44 @@ def test_eurostat_label_matching_no_dataset_fails() -> None:
         recorder.record_eurostat(fake_fetch(responses))
 
 
-def test_eurostat_without_geo_column_fails() -> None:
-    content = eurostat_csv(ALL_EUROSTAT_LABELS, geo_column="area")
+@pytest.mark.parametrize("code", ["geo", "TIME_PERIOD", "OBS_VALUE"])
+def test_eurostat_without_required_column_fails(code: str) -> None:
+    content = eurostat_csv(ALL_EUROSTAT_LABELS, header_without(code))
 
-    with pytest.raises(recorder.RecordingError, match="geo column"):
+    with pytest.raises(recorder.RecordingError, match=code):
         recorder.geo_labels(content, "Eurostat test")
 
 
-def test_eurostat_without_required_column_fails() -> None:
-    content = b"STRUCTURE,geo,OBS_VALUE\ndataflow,EL: Greece,1.0\n"
+def test_eurostat_columns_match_by_code_with_or_without_label() -> None:
+    plain_header = [name.split(": ")[0] for name in EUROSTAT_HEADER]
 
-    with pytest.raises(recorder.RecordingError, match="TIME_PERIOD"):
-        recorder.geo_labels(content, "Eurostat test")
+    labels = recorder.geo_labels(
+        eurostat_csv(["Greece"], plain_header), "Eurostat test"
+    )
+
+    assert labels == frozenset({"Greece"})
+
+
+def test_eurostat_geo_labels_from_real_response_lines() -> None:
+    # Header and first rows of the live nrg_ind_ren response.
+    content = (
+        b"STRUCTURE,STRUCTURE_ID,freq: Time frequency,"
+        b"nrg_bal: Energy balance,unit: Unit of measure,"
+        b"geo: Geopolitical entity (reporting),TIME_PERIOD: Time,"
+        b"OBS_VALUE: Observation value,"
+        b"OBS_FLAG: Observation status (Flag) V2 structure,"
+        b"CONF_STATUS: Confidentiality status (flag)\n"
+        b"dataflow,ESTAT:NRG_IND_REN(1.0),A: Annual,"
+        b"REN: Renewable energy - overall,PC: Percentage,AL: Albania,"
+        b"2008,32.448,,\n"
+        b"dataflow,ESTAT:NRG_IND_REN(1.0),A: Annual,"
+        b"REN: Renewable energy - overall,PC: Percentage,AT: Austria,"
+        b"2008,28.788,,\n"
+    )
+
+    labels = recorder.geo_labels(content, "Eurostat nrg_ind_ren")
+
+    assert labels == frozenset({"Albania", "Austria"})
 
 
 def test_eurostat_geo_labels_include_aggregates() -> None:

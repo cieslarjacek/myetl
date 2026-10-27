@@ -345,6 +345,9 @@ def _record_eurostat_slice(
 def geo_labels(content: bytes, source: str) -> frozenset[str]:
     """Check an SDMX-CSV response and return its ``geo`` labels.
 
+    Columns are matched by code: with ``labels=both`` the header reads
+    ``"TIME_PERIOD: Time"``, not ``"TIME_PERIOD"``.
+
     Args:
         content: Response body.
         source: Source name, for error messages.
@@ -353,20 +356,13 @@ def geo_labels(content: bytes, source: str) -> frozenset[str]:
         The label of every ``geo`` value, countries and aggregates.
 
     Raises:
-        RecordingError: If a required column or the ``geo`` column is
-            missing.
+        RecordingError: If a required column is missing.
     """
-    reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
-    header = reader.fieldnames or []
-    require_columns(header, eurostat.REQUIRED_COLUMNS, source)
-    # The exact name of the geo column is pinned once real fixtures
-    # exist; until then any column starting with "geo" is accepted.
-    geo_column = next((c for c in header if c.lower().startswith("geo")), None)
-    if geo_column is None:
-        raise RecordingError(f"{source} has no geo column: {header}")
-    return frozenset(
-        eurostat.extract_country_label(row[geo_column]) for row in reader
-    )
+    header, *rows = csv.reader(io.StringIO(content.decode("utf-8")))
+    column_codes = [eurostat.get_value_code(name) for name in header]
+    require_columns(column_codes, eurostat.REQUIRED_COLUMNS, source)
+    geo = column_codes.index(eurostat.GEO_COLUMN)
+    return frozenset(eurostat.get_value_label(row[geo]) for row in rows)
 
 
 # ----------------------------------------------------------------------

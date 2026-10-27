@@ -1,8 +1,9 @@
 """Eurostat: SDMX 3.0 dissemination API.
 
 Responses are SDMX-CSV 2.0 in long format, one row per observation.
-With ``labels=both`` every coded value reads ``"CODE: Label"`` (for
-example ``"EL: Greece"``). No ``geo`` filter is sent, so responses
+With ``labels=both`` every coded value and every coded column name
+reads ``"CODE: Label"`` (for example ``"EL: Greece"`` and
+``"TIME_PERIOD: Time"``). No ``geo`` filter is sent, so responses
 include every country and aggregate (EU27, euro area, ...).
 """
 
@@ -10,6 +11,7 @@ __all__ = [
     "API_BASE_URL",
     "DATAFLOW_VERSION",
     "FORMAT_PARAMS",
+    "GEO_COLUMN",
     "HOUSEHOLD_PRICE",
     "LABEL_SEPARATOR",
     "MONTHLY_GENERATION",
@@ -22,12 +24,15 @@ __all__ = [
     "Period",
     "PeriodRange",
     "RequestUrlSettings",
-    "extract_country_label",
+    "get_value_code",
+    "get_value_label",
 ]
 
 from dataclasses import dataclass
 from typing import Final
 from urllib.parse import urlencode
+
+from myetl._docstrings import share_docstring
 
 #: SDMX 3.0 data endpoint for Eurostat dataflows.
 API_BASE_URL: Final[str] = (
@@ -52,8 +57,16 @@ URL_SAFE_CHARACTERS: Final[str] = "[],:"
 #: Separates the code from the label in a coded value.
 LABEL_SEPARATOR: Final[str] = ": "
 
-#: SDMX-CSV columns the project reads (besides the ``geo`` column).
-REQUIRED_COLUMNS: Final[tuple[str, ...]] = ("TIME_PERIOD", "OBS_VALUE")
+#: Code of the column that holds the country or aggregate.
+GEO_COLUMN: Final[str] = "geo"
+
+#: Codes of the SDMX-CSV columns the project reads. Header names are
+#: labelled too (``"TIME_PERIOD: Time"``), so match them by code.
+REQUIRED_COLUMNS: Final[tuple[str, ...]] = (
+    GEO_COLUMN,
+    "TIME_PERIOD",
+    "OBS_VALUE",
+)
 
 #: A period in a dataset's frequency (``"2008"``, ``"2008-S1"`` or
 #: ``"2008-01"``). ``None`` leaves that end of a range open.
@@ -87,21 +100,34 @@ class RequestUrlSettings:
 REQUEST_URL_SETTINGS: Final[RequestUrlSettings] = RequestUrlSettings()
 
 
-def extract_country_label(
+def get_value_code(
     coded_value: str, *, separator: str = LABEL_SEPARATOR
 ) -> str:
-    """Return the label part of a coded ``geo`` value.
+    """Return the code or label part of a coded value or column name.
 
-    A ``geo`` value holds a Eurostat code and an English label,
-    separated by :data:`LABEL_SEPARATOR`. The code is ISO 3166-1
-    alpha-2 for most countries, ``EL`` for Greece, or an aggregate
-    code such as ``EU27_2020``.
+    ``get_value_code`` returns the part before the separator,
+    ``get_value_label`` the part after it.
 
     Args:
-        coded_value: A ``geo`` value as returned with ``labels=both``.
+        coded_value: A value or header name as returned with
+            ``labels=both``. E.g. ``"AT: Austria"`` or
+            ``"TIME_PERIOD: Time"``.
         separator: Separates the code from the label. Must match
             the ``labels`` setting of the request.
+
+    Returns:
+        The code (``"TIME_PERIOD: Time"`` gives ``"TIME_PERIOD"``) or
+        the label (``"EL: Greece"`` gives ``"Greece"``). For a value
+        without a separator the code is the whole value and the label
+        is an empty string.
     """
+    return coded_value.partition(separator)[0]
+
+
+@share_docstring(get_value_code)
+def get_value_label(  # noqa: D103 (docstring shared from get_value_code)
+    coded_value: str, *, separator: str = LABEL_SEPARATOR
+) -> str:
     return coded_value.partition(separator)[2]
 
 

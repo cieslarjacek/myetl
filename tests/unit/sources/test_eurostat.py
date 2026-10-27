@@ -143,12 +143,41 @@ def test_request_url_settings_are_immutable() -> None:
         ("EL", ""),
     ],
 )  # fmt: skip
-def test_extract_country_label_returns_text_after_separator(
+def test_get_value_label_returns_text_after_separator(
     coded_value: str, label: str
 ) -> None:
-    assert eurostat.extract_country_label(coded_value) == label
+    assert eurostat.get_value_label(coded_value) == label
 
 
-def test_extract_country_label_accepts_another_separator() -> None:
-    label = eurostat.extract_country_label("EL | Greece", separator=" | ")
+def test_get_value_label_accepts_another_separator() -> None:
+    label = eurostat.get_value_label("EL | Greece", separator=" | ")
     assert label == "Greece"
+
+
+@pytest.mark.parametrize(
+    ("coded_value", "code"),
+    [
+        ("TIME_PERIOD: Time", "TIME_PERIOD"),
+        ("geo: Geopolitical entity (reporting)", "geo"),
+        ("AT: Austria", "AT"),
+        ("STRUCTURE", "STRUCTURE"),
+    ],
+)
+def test_get_value_code_returns_text_before_separator(
+    coded_value: str, code: str
+) -> None:
+    assert eurostat.get_value_code(coded_value) == code
+
+
+def test_get_value_code_accepts_another_separator() -> None:
+    assert eurostat.get_value_code("EL | Greece", separator=" | ") == "EL"
+
+
+def test_required_columns_are_codes_including_geo() -> None:
+    assert eurostat.GEO_COLUMN in eurostat.REQUIRED_COLUMNS
+    assert all(": " not in code for code in eurostat.REQUIRED_COLUMNS)
+
+
+def test_get_value_label_shares_the_docstring_of_get_value_code() -> None:
+    assert eurostat.get_value_label.__doc__ == eurostat.get_value_code.__doc__
+    assert "label" in (eurostat.get_value_label.__doc__ or "")
