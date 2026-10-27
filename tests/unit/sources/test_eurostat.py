@@ -60,7 +60,7 @@ def test_eurostat_url_joins_multiple_values_with_comma() -> None:
 def test_monthly_generation_filters() -> None:
     query = _query(MONTHLY_GENERATION.create_request_url())
     assert query["c[FREQ]"] == "M"
-    assert query["c[SIEC]"] == "TOTAL,RA000,FE"
+    assert query["c[SIEC]"] == "TOTAL,RA000,CF,CF_R"
     assert query["c[UNIT]"] == "GWH"
 
 

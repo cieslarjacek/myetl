@@ -246,14 +246,21 @@ HOUSEHOLD_PRICE: Final[Dataset] = Dataset(
     ),
 )
 
-#: Net electricity generation (GWh), monthly: total, renewables and
-#: biofuels (``RA000``) and fossil energy (``FE``). Published from
-#: 2008-01. Summed to years downstream.
+#: Net electricity generation (GWh), monthly; summed to years
+#: downstream.
+#:
+#: * ``TOTAL``: all fuels, from 2008-01 (Croatia from 2011-01).
+#: * ``RA000``: renewables and biofuels, from 2017-01.
+#: * ``CF`` and ``CF_R``: combustible fuels, all and renewable only.
+#:   Fossil generation is derived as ``CF - CF_R``, from 2017-01. It
+#:   matches Eurostat's fossil energy (``FE``), which is published only
+#:   from 2023/2024, and includes peat, oil shale and non-renewable
+#:   waste.
 MONTHLY_GENERATION: Final[Dataset] = Dataset(
     dataset_code="nrg_cb_pem",
     filters=(
         DimensionFilter("FREQ", ("M",)),
-        DimensionFilter("SIEC", ("TOTAL", "RA000", "FE")),
+        DimensionFilter("SIEC", ("TOTAL", "RA000", "CF", "CF_R")),
         DimensionFilter("UNIT", ("GWH",)),
     ),
 )

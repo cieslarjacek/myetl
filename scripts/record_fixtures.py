@@ -6,8 +6,9 @@ it (all countries and aggregates, all columns), and writes it under
 
 * OWID: all rows for 2008-2009, all columns.
 * Eurostat: annual 2008-2009, semi-annual 2008-S1..2009-S1, monthly
-  2008-01..2009-06. The last year of the two sub-annual datasets is
-  incomplete on purpose, to test the aggregation rules.
+  2017-01..2018-06 (the first months with every monthly series). The
+  last year of the two sub-annual datasets is incomplete on purpose,
+  to test the aggregation rules.
 * World Bank: all economies, 2008-2009, with a small page size so the
   response spans several pages.
 
@@ -108,11 +109,13 @@ type Recorder = Callable[[Fetch], list[Fixture]]
 #: Years in the fixture slice.
 SLICE_YEARS: Final[YearRange] = YearRange(2008, 2009)
 
-#: Eurostat time ranges; the sub-annual ones end mid-2009 on purpose.
+#: Eurostat time ranges. The sub-annual ones end mid-year on purpose.
+#: The monthly one starts in 2017, when the renewable and combustible
+#: fuel series begin.
 EUROSTAT_SLICES: Final[tuple[EurostatSlice, ...]] = (
     EurostatSlice(eurostat.RES_SHARE, ("2008", "2009")),
     EurostatSlice(eurostat.HOUSEHOLD_PRICE, ("2008-S1", "2009-S1")),
-    EurostatSlice(eurostat.MONTHLY_GENERATION, ("2008-01", "2009-06")),
+    EurostatSlice(eurostat.MONTHLY_GENERATION, ("2017-01", "2018-06")),
 )
 
 #: Small page size, so the World Bank slice spans several pages.

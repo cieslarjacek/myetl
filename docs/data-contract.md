@@ -64,14 +64,14 @@ aggregating happen in the transform step.
 | Item | Value |
 |---|---|
 | Request | `GET https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/{DATASET}/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[DIM]=v1,v2…` |
-| Raw shape | SDMX-CSV 2.0, long format: one row per observation. Every coded column holds `CODE: Label` (for example `EL: Greece`); values are text; status flags sit in their own column. No `geo` filter is sent, so all countries and aggregates (EU27, euro area, candidate countries, …) are included. Exact column names are confirmed by the recorded fixtures. |
+| Raw shape | SDMX-CSV 2.0, long format: one row per observation. Every coded value holds `CODE: Label` (for example `EL: Greece`), and so does every coded column name (for example `TIME_PERIOD: Time`), so columns are matched by code. Values are text; status flags sit in their own column. No `geo` filter is sent, so all countries and aggregates (EU27, euro area, candidate countries, …) are included. |
 | Country matching | The label part of `geo` (`EL: Greece` → `Greece`) is matched against the Eurostat labels in section 1 |
 
 | Dataset | Frequency | Fixed filters | Coverage | To annual |
 |---|---|---|---|---|
-| `nrg_ind_ren`: share of energy from renewable sources | annual | `FREQ=A`, `UNIT=PC`, `NRG_BAL=REN,REN_ELC` | 2004 onward | as published |
-| `nrg_pc_204`: household electricity prices | semi-annual | `FREQ=S`, `SIEC=E7000`, `UNIT=KWH`, `NRG_CONS=KWH2500-4999` (band DC), `TAX=I_TAX` (all taxes and levies), `CURRENCY=EUR,PPS` | 2007-S1 onward with the current bands | mean of S1 and S2 |
-| `nrg_cb_pem`: net electricity generation by fuel | **monthly** | `FREQ=M`, `SIEC=TOTAL,RA000,FE` (total, renewables and biofuels, fossil energy), `UNIT=GWH` | 2008-01 onward | sum of 12 months, GWh → TWh |
+| `nrg_ind_ren`: share of energy from renewable sources | annual | `FREQ=A`, `UNIT=PC`, `NRG_BAL=REN,REN_ELC` | 2004–2025 | as published |
+| `nrg_pc_204`: household electricity prices | semi-annual | `FREQ=S`, `SIEC=E7000`, `UNIT=KWH`, `NRG_CONS=KWH2500-4999` (band DC), `TAX=I_TAX` (all taxes and levies), `CURRENCY=EUR,PPS` | 2007-S1 – 2026-S1 with the current bands | mean of S1 and S2 |
+| `nrg_cb_pem`: net electricity generation by fuel | **monthly** | `FREQ=M`, `SIEC=TOTAL,RA000,CF,CF_R` (total, renewables and biofuels, combustible fuels, renewable combustible fuels), `UNIT=GWH` | `TOTAL` 2008-01 – 2026-08; `RA000`, `CF_R` 2017-01 – 2026-08 | sum of 12 months, GWh → TWh; fossil = `CF − CF_R` |
 
 | Item | Value |
 |---|---|
@@ -79,12 +79,51 @@ aggregating happen in the transform step.
 | Attribution | "Source: Eurostat, datasets nrg_ind_ren, nrg_pc_204 and nrg_cb_pem (accessed YYYY-MM-DD)" |
 | Modified data | Required by Eurostat: the output states that values were aggregated (semi-annual and monthly to annual) and that Eurostat is not responsible for the transformation |
 
+#### Coverage of the annual values
+
+Checked on 2026-10-27 against the full time range, for the 29 countries
+in scope. A sub-annual series gives an annual value only for complete
+years (section 4, rule 3), so the first annual value can be later than the first
+period published.
+
+| Columns | First annual value | Exceptions |
+|---|---|---|
+| 14–15 (RES shares) | 2004 | none |
+| 16–17 (household prices) | 2008 | 2007 for Croatia, Czechia, Germany, Luxembourg, the Netherlands and Sweden, which start in 2007-S1; 2012 for Iceland (starts 2012-S1) |
+| 18 (net generation) | 2008 | 2011 for Croatia |
+| 19 (renewables) | 2017 | none |
+| 20 (fossil, `CF − CF_R`) | 2017 | per-country exceptions to be confirmed by the next coverage run |
+| 16–20 | | the current year stays empty until all its periods are published |
+
+#### Fossil generation: `CF − CF_R`
+
+1. **Definition.** Eurostat defines fossil fuels as non-renewable
+   sources: coal, coal products, natural gas, derived gas, crude oil,
+   petroleum products and non-renewable waste, with peat and oil shale
+   in the same group. Combustible fuels (`CF`) minus renewable
+   combustible fuels (`CF_R`) is that group.
+2. **Check against `FE`.** Eurostat publishes fossil energy (`FE`)
+   directly only from 2023-01 (France), 2023-02 (Sweden) and 2024-01
+   (all others). In every month where both exist (2023-01 – 2026-08),
+   `CF − CF_R` matches `FE` within 1 % for 28 of 29 countries.
+3. **Rejected alternatives.** Coal + gas + oil (`C0000 + G3000 +
+   O4000XBIO`) matches `FE` for only 9 of 27 countries: it misses peat,
+   oil shale and non-renewable waste (Estonia, for example, generates
+   from oil shale), and the IEA documents gaps in the monthly fuel
+   breakdown for Estonia, Sweden and Poland. `CF − CF_R − CF_NR_OTH`
+   matches for 8 of 29, because `CF_NR_OTH` (non-renewable waste) is
+   fossil by Eurostat's definition.
+4. **Known issue: France.** `CF − CF_R` differs from `FE` by up to
+   101.9 % in some months (median 0.0 %). No published explanation was
+   found. The transform step decides how implausible monthly values are
+   handled.
+
 ### 2.3 World Bank: Indicators API v2
 
 | Item | Value |
 |---|---|
 | Request | `GET https://api.worldbank.org/v2/country/all/indicator/{code}?format=json&date=1990:{last}&per_page=1000&page={n}`, one series of requests per indicator, following pages until `page == pages` |
-| Raw shape | JSON array `[metadata, rows]`, about 266 economies and aggregates (World, regions, income groups) × 36 years ≈ 9 600 rows per indicator, so about 10 pages. Missing values are `null`. API errors also arrive with HTTP 200, as a one-element array holding `message`, so the shape is checked, not only the status code. |
+| Raw shape | JSON array `[metadata, rows]`, 262 economies and aggregates (World, regions, income groups; checked 2026-10-27) × 36 years ≈ 9 400 rows per indicator, so about 10 pages. Missing values are `null`. API errors also arrive with HTTP 200, as a one-element array holding `message`, so the shape is checked, not only the status code. |
 | Indicators | `NY.GDP.MKTP.PP.KD`: GDP, PPP (constant 2021 international $), **total**; `SP.POP.TOTL`: population, total |
 | Used | Rows with `countryiso3code` in scope (`country.id` is alpha-2), `date` ≥ 2000. GDP per capita is computed: GDP ÷ population. |
 | Licence | CC BY 4.0, unless an indicator's metadata says otherwise |
@@ -129,7 +168,7 @@ empty field for a missing value, sorted by `country_iso3` then `year`.
 | 17 | `household_price_pps_per_kwh` | float | PPS/kWh | `nrg_pc_204`, `PPS`: mean of S1 and S2 |
 | 18 | `net_generation_eurostat_twh` | float | TWh | `nrg_cb_pem`, `TOTAL`: sum of 12 months ÷ 1000 |
 | 19 | `renewables_generation_eurostat_twh` | float | TWh | `nrg_cb_pem`, `RA000`: sum of 12 months ÷ 1000 |
-| 20 | `fossil_generation_eurostat_twh` | float | TWh | `nrg_cb_pem`, `FE`: sum of 12 months ÷ 1000 |
+| 20 | `fossil_generation_eurostat_twh` | float | TWh | `nrg_cb_pem`, `CF − CF_R`: sum of 12 months ÷ 1000 |
 
 ### 3.4 Economy (World Bank)
 
@@ -170,7 +209,12 @@ is empty.
 6. **Two generation series on purpose.** Columns 4–6 (Ember via OWID) and
    18–20 (Eurostat monthly) measure the same thing from different
    collections; they are expected to be close, not identical, and are a
-   cross-check of each other.
+   cross-check of each other. Eurostat notes that annual totals added up
+   from monthly data may differ from its annual data. The fossil columns
+   also differ by definition: Ember's (column 6) is coal, gas and oil,
+   while Eurostat's (column 20) also includes peat, oil shale and
+   non-renewable waste, so countries using those fuels (for example
+   Estonia, Finland and Ireland) differ more.
 7. **Population** comes only from the World Bank; OWID's population
    column is not used.
 
@@ -184,7 +228,7 @@ aggregates and columns):
 | Source | Slice | Files |
 |---|---|---|
 | OWID | all rows for 2008–2009, unchanged | `owid/owid-energy-data.csv` |
-| Eurostat | `nrg_ind_ren` 2008–2009; `nrg_pc_204` 2008-S1–2009-S1; `nrg_cb_pem` 2008-01–2009-06 (2009 incomplete on purpose) | `eurostat/{dataset}.csv`, byte for byte |
+| Eurostat | `nrg_ind_ren` 2008–2009; `nrg_pc_204` 2008-S1–2009-S1 (2009 incomplete on purpose); `nrg_cb_pem` 2017-01–2018-06 (the first months with every monthly series; 2018 incomplete on purpose) | `eurostat/{dataset}.csv`, byte for byte |
 | World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 `manifest.json` lists the recording time (UTC), URL, size and SHA-256 of

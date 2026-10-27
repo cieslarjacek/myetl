@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-27T11:14:32+00:00",
+  "recorded_at": "2026-10-27T12:38:00+00:00",
   "files": [
     {
       "path": "owid/owid-energy-data.csv",
@@ -21,9 +21,9 @@
     },
     {
       "path": "eurostat/nrg_cb_pem.csv",
-      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/NRG_CB_PEM/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[FREQ]=M&c[SIEC]=TOTAL,RA000,FE&c[UNIT]=GWH&c[TIME_PERIOD]=ge:2008-01%2Ble:2009-06",
-      "bytes": 53643,
-      "sha256": "fd1517a3829927a46be02d4e2050f90b06535464566855ae4552dcc967e0cac6"
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/NRG_CB_PEM/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[FREQ]=M&c[SIEC]=TOTAL,RA000,CF,CF_R&c[UNIT]=GWH&c[TIME_PERIOD]=ge:2017-01%2Ble:2018-06",
+      "bytes": 316804,
+      "sha256": "ed284f6f1911ae2e80d995bf5d07622527e749cef9b0ad43e12d003557b23c6e"
     },
     {
       "path": "worldbank/NY.GDP.MKTP.PP.KD/page-1.json",
