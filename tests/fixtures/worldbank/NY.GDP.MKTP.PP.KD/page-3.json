@@ -1,0 +1,2124 @@
+[
+  {
+    "page": 3,
+    "pages": 3,
+    "per_page": 200,
+    "total": 532,
+    "sourceid": "2",
+    "lastupdated": "2026-10-08"
+  },
+  [
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PA",
+        "value": "Panama"
+      },
+      "countryiso3code": "PAN",
+      "date": "2009",
+      "value": 77785472790.7843,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PA",
+        "value": "Panama"
+      },
+      "countryiso3code": "PAN",
+      "date": "2008",
+      "value": 76551565617.4132,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PG",
+        "value": "Papua New Guinea"
+      },
+      "countryiso3code": "PNG",
+      "date": "2009",
+      "value": 24812105301.0447,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PG",
+        "value": "Papua New Guinea"
+      },
+      "countryiso3code": "PNG",
+      "date": "2008",
+      "value": 23232216649.0166,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PY",
+        "value": "Paraguay"
+      },
+      "countryiso3code": "PRY",
+      "date": "2009",
+      "value": 65785315971.6897,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PY",
+        "value": "Paraguay"
+      },
+      "countryiso3code": "PRY",
+      "date": "2008",
+      "value": 65957555770.4958,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PE",
+        "value": "Peru"
+      },
+      "countryiso3code": "PER",
+      "date": "2009",
+      "value": 323727085331.558,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PE",
+        "value": "Peru"
+      },
+      "countryiso3code": "PER",
+      "date": "2008",
+      "value": 320218060068.164,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PH",
+        "value": "Philippines"
+      },
+      "countryiso3code": "PHL",
+      "date": "2009",
+      "value": 563031056381.58,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PH",
+        "value": "Philippines"
+      },
+      "countryiso3code": "PHL",
+      "date": "2008",
+      "value": 554992965268.913,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PL",
+        "value": "Poland"
+      },
+      "countryiso3code": "POL",
+      "date": "2009",
+      "value": 999740261175.103,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PL",
+        "value": "Poland"
+      },
+      "countryiso3code": "POL",
+      "date": "2008",
+      "value": 974262055589.444,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PT",
+        "value": "Portugal"
+      },
+      "countryiso3code": "PRT",
+      "date": "2009",
+      "value": 381437740848.062,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PT",
+        "value": "Portugal"
+      },
+      "countryiso3code": "PRT",
+      "date": "2008",
+      "value": 393730309298.538,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PR",
+        "value": "Puerto Rico (US)"
+      },
+      "countryiso3code": "PRI",
+      "date": "2009",
+      "value": 152505310993.439,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PR",
+        "value": "Puerto Rico (US)"
+      },
+      "countryiso3code": "PRI",
+      "date": "2008",
+      "value": 155542155203.067,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "QA",
+        "value": "Qatar"
+      },
+      "countryiso3code": "QAT",
+      "date": "2009",
+      "value": 183527005851.195,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "QA",
+        "value": "Qatar"
+      },
+      "countryiso3code": "QAT",
+      "date": "2008",
+      "value": 163925526893.644,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RO",
+        "value": "Romania"
+      },
+      "countryiso3code": "ROU",
+      "date": "2009",
+      "value": 524699675360.97,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RO",
+        "value": "Romania"
+      },
+      "countryiso3code": "ROU",
+      "date": "2008",
+      "value": 555335926625.07,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RU",
+        "value": "Russian Federation"
+      },
+      "countryiso3code": "RUS",
+      "date": "2009",
+      "value": 4519727990459.76,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RU",
+        "value": "Russian Federation"
+      },
+      "countryiso3code": "RUS",
+      "date": "2008",
+      "value": 4902090772294.38,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RW",
+        "value": "Rwanda"
+      },
+      "countryiso3code": "RWA",
+      "date": "2009",
+      "value": 17752988909.3411,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RW",
+        "value": "Rwanda"
+      },
+      "countryiso3code": "RWA",
+      "date": "2008",
+      "value": 16708969470.0775,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "WS",
+        "value": "Samoa"
+      },
+      "countryiso3code": "WSM",
+      "date": "2009",
+      "value": 1169169557.8477,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "WS",
+        "value": "Samoa"
+      },
+      "countryiso3code": "WSM",
+      "date": "2008",
+      "value": 1175537179.45002,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SM",
+        "value": "San Marino"
+      },
+      "countryiso3code": "SMR",
+      "date": "2009",
+      "value": 2416920719.969,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SM",
+        "value": "San Marino"
+      },
+      "countryiso3code": "SMR",
+      "date": "2008",
+      "value": 2695078613.3549,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ST",
+        "value": "Sao Tome and Principe"
+      },
+      "countryiso3code": "STP",
+      "date": "2009",
+      "value": 874893641.37586,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ST",
+        "value": "Sao Tome and Principe"
+      },
+      "countryiso3code": "STP",
+      "date": "2008",
+      "value": 846924799.618182,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SA",
+        "value": "Saudi Arabia"
+      },
+      "countryiso3code": "SAU",
+      "date": "2009",
+      "value": 1253524282984.6,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SA",
+        "value": "Saudi Arabia"
+      },
+      "countryiso3code": "SAU",
+      "date": "2008",
+      "value": 1267040015652.55,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SN",
+        "value": "Senegal"
+      },
+      "countryiso3code": "SEN",
+      "date": "2009",
+      "value": 41595034083.066,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SN",
+        "value": "Senegal"
+      },
+      "countryiso3code": "SEN",
+      "date": "2008",
+      "value": 40480955880.8794,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RS",
+        "value": "Serbia"
+      },
+      "countryiso3code": "SRB",
+      "date": "2009",
+      "value": 128027171255.876,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "RS",
+        "value": "Serbia"
+      },
+      "countryiso3code": "SRB",
+      "date": "2008",
+      "value": 132181109002.359,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SC",
+        "value": "Seychelles"
+      },
+      "countryiso3code": "SYC",
+      "date": "2009",
+      "value": 1864783995.48965,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SC",
+        "value": "Seychelles"
+      },
+      "countryiso3code": "SYC",
+      "date": "2008",
+      "value": 1912194485.63125,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SL",
+        "value": "Sierra Leone"
+      },
+      "countryiso3code": "SLE",
+      "date": "2009",
+      "value": 14391742579.0314,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SL",
+        "value": "Sierra Leone"
+      },
+      "countryiso3code": "SLE",
+      "date": "2008",
+      "value": 14174754970.7358,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SG",
+        "value": "Singapore"
+      },
+      "countryiso3code": "SGP",
+      "date": "2009",
+      "value": 426815325624.664,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SG",
+        "value": "Singapore"
+      },
+      "countryiso3code": "SGP",
+      "date": "2008",
+      "value": 426269898869.297,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SX",
+        "value": "Sint Maarten (Dutch part)"
+      },
+      "countryiso3code": "SXM",
+      "date": "2009",
+      "value": 1707402664.34984,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SX",
+        "value": "Sint Maarten (Dutch part)"
+      },
+      "countryiso3code": "SXM",
+      "date": "2008",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SK",
+        "value": "Slovak Republic"
+      },
+      "countryiso3code": "SVK",
+      "date": "2009",
+      "value": 150175213754.122,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SK",
+        "value": "Slovak Republic"
+      },
+      "countryiso3code": "SVK",
+      "date": "2008",
+      "value": 158924547093.092,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SI",
+        "value": "Slovenia"
+      },
+      "countryiso3code": "SVN",
+      "date": "2009",
+      "value": 77118199208.3955,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SI",
+        "value": "Slovenia"
+      },
+      "countryiso3code": "SVN",
+      "date": "2008",
+      "value": 83452752254.891,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SB",
+        "value": "Solomon Islands"
+      },
+      "countryiso3code": "SLB",
+      "date": "2009",
+      "value": 1303235103.576,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SB",
+        "value": "Solomon Islands"
+      },
+      "countryiso3code": "SLB",
+      "date": "2008",
+      "value": 1266939034.71767,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SO",
+        "value": "Somalia, Fed. Rep."
+      },
+      "countryiso3code": "SOM",
+      "date": "2009",
+      "value": 11437543512.3062,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SO",
+        "value": "Somalia, Fed. Rep."
+      },
+      "countryiso3code": "SOM",
+      "date": "2008",
+      "value": 10719914696.4086,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZA",
+        "value": "South Africa"
+      },
+      "countryiso3code": "ZAF",
+      "date": "2009",
+      "value": 719579955942.789,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZA",
+        "value": "South Africa"
+      },
+      "countryiso3code": "ZAF",
+      "date": "2008",
+      "value": 730820628629.955,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SS",
+        "value": "South Sudan"
+      },
+      "countryiso3code": "SSD",
+      "date": "2009",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SS",
+        "value": "South Sudan"
+      },
+      "countryiso3code": "SSD",
+      "date": "2008",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ES",
+        "value": "Spain"
+      },
+      "countryiso3code": "ESP",
+      "date": "2009",
+      "value": 1986755203031.46,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ES",
+        "value": "Spain"
+      },
+      "countryiso3code": "ESP",
+      "date": "2008",
+      "value": 2064550201924.56,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "LK",
+        "value": "Sri Lanka"
+      },
+      "countryiso3code": "LKA",
+      "date": "2009",
+      "value": 190052541508.044,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "LK",
+        "value": "Sri Lanka"
+      },
+      "countryiso3code": "LKA",
+      "date": "2008",
+      "value": 183556633674.528,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "KN",
+        "value": "St. Kitts and Nevis"
+      },
+      "countryiso3code": "KNA",
+      "date": "2009",
+      "value": 1171671013.26522,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "KN",
+        "value": "St. Kitts and Nevis"
+      },
+      "countryiso3code": "KNA",
+      "date": "2008",
+      "value": 1212969471.92886,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "LC",
+        "value": "St. Lucia"
+      },
+      "countryiso3code": "LCA",
+      "date": "2009",
+      "value": 3517393387.4718,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "LC",
+        "value": "St. Lucia"
+      },
+      "countryiso3code": "LCA",
+      "date": "2008",
+      "value": 3619793715.54034,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "MF",
+        "value": "St. Martin (French part)"
+      },
+      "countryiso3code": "MAF",
+      "date": "2009",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "MF",
+        "value": "St. Martin (French part)"
+      },
+      "countryiso3code": "MAF",
+      "date": "2008",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VC",
+        "value": "St. Vincent and the Grenadines"
+      },
+      "countryiso3code": "VCT",
+      "date": "2009",
+      "value": 1516587902.96207,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VC",
+        "value": "St. Vincent and the Grenadines"
+      },
+      "countryiso3code": "VCT",
+      "date": "2008",
+      "value": 1537781509.39271,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SD",
+        "value": "Sudan"
+      },
+      "countryiso3code": "SDN",
+      "date": "2009",
+      "value": 183489844612.545,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SD",
+        "value": "Sudan"
+      },
+      "countryiso3code": "SDN",
+      "date": "2008",
+      "value": 188712858640.32,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SR",
+        "value": "Suriname"
+      },
+      "countryiso3code": "SUR",
+      "date": "2009",
+      "value": 11907623766.9886,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SR",
+        "value": "Suriname"
+      },
+      "countryiso3code": "SUR",
+      "date": "2008",
+      "value": 11559262393.8227,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SE",
+        "value": "Sweden"
+      },
+      "countryiso3code": "SWE",
+      "date": "2009",
+      "value": 492362974294.349,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SE",
+        "value": "Sweden"
+      },
+      "countryiso3code": "SWE",
+      "date": "2008",
+      "value": 514247355956.965,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "CH",
+        "value": "Switzerland"
+      },
+      "countryiso3code": "CHE",
+      "date": "2009",
+      "value": 578254714926.099,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "CH",
+        "value": "Switzerland"
+      },
+      "countryiso3code": "CHE",
+      "date": "2008",
+      "value": 589664182918.999,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SY",
+        "value": "Syrian Arab Republic"
+      },
+      "countryiso3code": "SYR",
+      "date": "2009",
+      "value": 208376169498.879,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "SY",
+        "value": "Syrian Arab Republic"
+      },
+      "countryiso3code": "SYR",
+      "date": "2008",
+      "value": 196744079878.114,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TJ",
+        "value": "Tajikistan"
+      },
+      "countryiso3code": "TJK",
+      "date": "2009",
+      "value": 17598297652.2489,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TJ",
+        "value": "Tajikistan"
+      },
+      "countryiso3code": "TJK",
+      "date": "2008",
+      "value": 16937726138.3628,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TZ",
+        "value": "Tanzania"
+      },
+      "countryiso3code": "TZA",
+      "date": "2009",
+      "value": 108513627413.436,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TZ",
+        "value": "Tanzania"
+      },
+      "countryiso3code": "TZA",
+      "date": "2008",
+      "value": 103082121917,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TH",
+        "value": "Thailand"
+      },
+      "countryiso3code": "THA",
+      "date": "2009",
+      "value": 1067294155514.74,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TH",
+        "value": "Thailand"
+      },
+      "countryiso3code": "THA",
+      "date": "2008",
+      "value": 1074716342521.71,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TL",
+        "value": "Timor-Leste"
+      },
+      "countryiso3code": "TLS",
+      "date": "2009",
+      "value": 4015280722.66861,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TL",
+        "value": "Timor-Leste"
+      },
+      "countryiso3code": "TLS",
+      "date": "2008",
+      "value": 3645385152.83703,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TG",
+        "value": "Togo"
+      },
+      "countryiso3code": "TGO",
+      "date": "2009",
+      "value": 13037096900.4961,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TG",
+        "value": "Togo"
+      },
+      "countryiso3code": "TGO",
+      "date": "2008",
+      "value": 12362850408.795,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TO",
+        "value": "Tonga"
+      },
+      "countryiso3code": "TON",
+      "date": "2009",
+      "value": 584746690.50674,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TO",
+        "value": "Tonga"
+      },
+      "countryiso3code": "TON",
+      "date": "2008",
+      "value": 616360941.499067,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TT",
+        "value": "Trinidad and Tobago"
+      },
+      "countryiso3code": "TTO",
+      "date": "2009",
+      "value": 44821697980.9085,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TT",
+        "value": "Trinidad and Tobago"
+      },
+      "countryiso3code": "TTO",
+      "date": "2008",
+      "value": 46880565486.7661,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TN",
+        "value": "Tunisia"
+      },
+      "countryiso3code": "TUN",
+      "date": "2009",
+      "value": 130255434928.525,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TN",
+        "value": "Tunisia"
+      },
+      "countryiso3code": "TUN",
+      "date": "2008",
+      "value": 126408262506.873,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TR",
+        "value": "Turkiye"
+      },
+      "countryiso3code": "TUR",
+      "date": "2009",
+      "value": 1340807571289.78,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TR",
+        "value": "Turkiye"
+      },
+      "countryiso3code": "TUR",
+      "date": "2008",
+      "value": 1409635772832.29,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TM",
+        "value": "Turkmenistan"
+      },
+      "countryiso3code": "TKM",
+      "date": "2009",
+      "value": 44631520422.5963,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TM",
+        "value": "Turkmenistan"
+      },
+      "countryiso3code": "TKM",
+      "date": "2008",
+      "value": 42065523482.8003,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TC",
+        "value": "Turks and Caicos Islands"
+      },
+      "countryiso3code": "TCA",
+      "date": "2009",
+      "value": 500638710.071393,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TC",
+        "value": "Turks and Caicos Islands"
+      },
+      "countryiso3code": "TCA",
+      "date": "2008",
+      "value": 622299870.298888,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TV",
+        "value": "Tuvalu"
+      },
+      "countryiso3code": "TUV",
+      "date": "2009",
+      "value": 39878789.1724043,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "TV",
+        "value": "Tuvalu"
+      },
+      "countryiso3code": "TUV",
+      "date": "2008",
+      "value": 42253397.236548,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UG",
+        "value": "Uganda"
+      },
+      "countryiso3code": "UGA",
+      "date": "2009",
+      "value": 68824527391.806,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UG",
+        "value": "Uganda"
+      },
+      "countryiso3code": "UGA",
+      "date": "2008",
+      "value": 64441525832.5968,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UA",
+        "value": "Ukraine"
+      },
+      "countryiso3code": "UKR",
+      "date": "2009",
+      "value": 750306202906.028,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UA",
+        "value": "Ukraine"
+      },
+      "countryiso3code": "UKR",
+      "date": "2008",
+      "value": 884132659139.896,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "AE",
+        "value": "United Arab Emirates"
+      },
+      "countryiso3code": "ARE",
+      "date": "2009",
+      "value": 479480665998.703,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "AE",
+        "value": "United Arab Emirates"
+      },
+      "countryiso3code": "ARE",
+      "date": "2008",
+      "value": 506010395898.845,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "GB",
+        "value": "United Kingdom"
+      },
+      "countryiso3code": "GBR",
+      "date": "2009",
+      "value": 2926707248980.16,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "GB",
+        "value": "United Kingdom"
+      },
+      "countryiso3code": "GBR",
+      "date": "2008",
+      "value": 3067422437153.46,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "US",
+        "value": "United States"
+      },
+      "countryiso3code": "USA",
+      "date": "2009",
+      "value": 18014390119987.1,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "US",
+        "value": "United States"
+      },
+      "countryiso3code": "USA",
+      "date": "2008",
+      "value": 18490805774529.2,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UY",
+        "value": "Uruguay"
+      },
+      "countryiso3code": "URY",
+      "date": "2009",
+      "value": 76589128217.9562,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UY",
+        "value": "Uruguay"
+      },
+      "countryiso3code": "URY",
+      "date": "2008",
+      "value": 73471374697.9385,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UZ",
+        "value": "Uzbekistan"
+      },
+      "countryiso3code": "UZB",
+      "date": "2009",
+      "value": 152878977560.146,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "UZ",
+        "value": "Uzbekistan"
+      },
+      "countryiso3code": "UZB",
+      "date": "2008",
+      "value": 141487882475.758,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VU",
+        "value": "Vanuatu"
+      },
+      "countryiso3code": "VUT",
+      "date": "2009",
+      "value": 900147185.422651,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VU",
+        "value": "Vanuatu"
+      },
+      "countryiso3code": "VUT",
+      "date": "2008",
+      "value": 873612909.585217,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VE",
+        "value": "Venezuela, RB"
+      },
+      "countryiso3code": "VEN",
+      "date": "2009",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VE",
+        "value": "Venezuela, RB"
+      },
+      "countryiso3code": "VEN",
+      "date": "2008",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VN",
+        "value": "Viet Nam"
+      },
+      "countryiso3code": "VNM",
+      "date": "2009",
+      "value": 597813842917.616,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VN",
+        "value": "Viet Nam"
+      },
+      "countryiso3code": "VNM",
+      "date": "2008",
+      "value": 567197123348.626,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VI",
+        "value": "Virgin Islands (U.S.)"
+      },
+      "countryiso3code": "VIR",
+      "date": "2009",
+      "value": 6384486718.0133,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "VI",
+        "value": "Virgin Islands (U.S.)"
+      },
+      "countryiso3code": "VIR",
+      "date": "2008",
+      "value": 6835257519.3813,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PS",
+        "value": "West Bank and Gaza"
+      },
+      "countryiso3code": "PSE",
+      "date": "2009",
+      "value": 19443998769.9867,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "PS",
+        "value": "West Bank and Gaza"
+      },
+      "countryiso3code": "PSE",
+      "date": "2008",
+      "value": 17905307779.1404,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "YE",
+        "value": "Yemen, Rep."
+      },
+      "countryiso3code": "YEM",
+      "date": "2009",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "YE",
+        "value": "Yemen, Rep."
+      },
+      "countryiso3code": "YEM",
+      "date": "2008",
+      "value": null,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZM",
+        "value": "Zambia"
+      },
+      "countryiso3code": "ZMB",
+      "date": "2009",
+      "value": 41359430886.098,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZM",
+        "value": "Zambia"
+      },
+      "countryiso3code": "ZMB",
+      "date": "2008",
+      "value": 37867880381.0486,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZW",
+        "value": "Zimbabwe"
+      },
+      "countryiso3code": "ZWE",
+      "date": "2009",
+      "value": 43363690467.9267,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    },
+    {
+      "indicator": {
+        "id": "NY.GDP.MKTP.PP.KD",
+        "value": "GDP, PPP (constant 2021 international $)"
+      },
+      "country": {
+        "id": "ZW",
+        "value": "Zimbabwe"
+      },
+      "countryiso3code": "ZWE",
+      "date": "2008",
+      "value": 38282779114.961,
+      "unit": "",
+      "obs_status": "",
+      "decimal": 0
+    }
+  ]
+]

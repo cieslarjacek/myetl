@@ -1,0 +1,65 @@
+{
+  "recorded_at": "2026-10-27T12:38:00+00:00",
+  "files": [
+    {
+      "path": "owid/owid-energy-data.csv",
+      "url": "https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv",
+      "bytes": 349038,
+      "sha256": "c1ad9b5cff158ab417074d3f35ff0f1d5a22a246d53b4325a6c56f9a62593a07"
+    },
+    {
+      "path": "eurostat/nrg_ind_ren.csv",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/NRG_IND_REN/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[FREQ]=A&c[UNIT]=PC&c[NRG_BAL]=REN,REN_ELC&c[TIME_PERIOD]=ge:2008%2Ble:2009",
+      "bytes": 17215,
+      "sha256": "fdb3accfa3a772981fbefe8aff4b3c8b1f5e0050c670887097378ec496d862a9"
+    },
+    {
+      "path": "eurostat/nrg_pc_204.csv",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/NRG_PC_204/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[FREQ]=S&c[SIEC]=E7000&c[UNIT]=KWH&c[NRG_CONS]=KWH2500-4999&c[TAX]=I_TAX&c[CURRENCY]=EUR,PPS&c[TIME_PERIOD]=ge:2008-S1%2Ble:2009-S1",
+      "bytes": 48339,
+      "sha256": "2cf53047c1d79913be1a185cd33f9f9dd542133334a6e74df66d3365d8bde45e"
+    },
+    {
+      "path": "eurostat/nrg_cb_pem.csv",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/3.0/data/dataflow/ESTAT/NRG_CB_PEM/1.0?format=csvdata&formatVersion=2.0&labels=both&compress=false&c[FREQ]=M&c[SIEC]=TOTAL,RA000,CF,CF_R&c[UNIT]=GWH&c[TIME_PERIOD]=ge:2017-01%2Ble:2018-06",
+      "bytes": 316804,
+      "sha256": "ed284f6f1911ae2e80d995bf5d07622527e749cef9b0ad43e12d003557b23c6e"
+    },
+    {
+      "path": "worldbank/NY.GDP.MKTP.PP.KD/page-1.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/NY.GDP.MKTP.PP.KD?format=json&date=2008:2009&per_page=200&page=1",
+      "bytes": 74278,
+      "sha256": "7988023edaf9ac12cf2a4290d2998a9a3ebf6a995285fea7f3f746cb588f817e"
+    },
+    {
+      "path": "worldbank/NY.GDP.MKTP.PP.KD/page-2.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/NY.GDP.MKTP.PP.KD?format=json&date=2008:2009&per_page=200&page=2",
+      "bytes": 72421,
+      "sha256": "910b452940985fa1a813df27a07993c7f40f49df0c32c2e1d731c568758e931a"
+    },
+    {
+      "path": "worldbank/NY.GDP.MKTP.PP.KD/page-3.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/NY.GDP.MKTP.PP.KD?format=json&date=2008:2009&per_page=200&page=3",
+      "bytes": 48222,
+      "sha256": "b354b2433c8e02620eaa74e68e4450a06642ccb4d65da5d4614089f69d882ae4"
+    },
+    {
+      "path": "worldbank/SP.POP.TOTL/page-1.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&date=2008:2009&per_page=200&page=1",
+      "bytes": 67036,
+      "sha256": "c7070c0c4dbfe3f7707f8f4175fab1ee1caca3b8a238b38c95e8930868f19573"
+    },
+    {
+      "path": "worldbank/SP.POP.TOTL/page-2.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&date=2008:2009&per_page=200&page=2",
+      "bytes": 65114,
+      "sha256": "0422fdf9a17d60c421bd88a1b07694ab2ad1ff151f1b3f22efe34d9b94d598a0"
+    },
+    {
+      "path": "worldbank/SP.POP.TOTL/page-3.json",
+      "url": "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&date=2008:2009&per_page=200&page=3",
+      "bytes": 43356,
+      "sha256": "e7d22a96bcba2d5da358fcde6e06828ba7d9d003412b0c4cee42a5e50fa18c8c"
+    }
+  ]
+}

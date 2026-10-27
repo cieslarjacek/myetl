@@ -63,5 +63,6 @@
   "files.watcherExclude": {
     "**/.venv/**": true,
     "**/.mypy_cache/**": true
-  }
+  },
+  "python-envs.defaultEnvManager": "ms-python.python:venv"
 }

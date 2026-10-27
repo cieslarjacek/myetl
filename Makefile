@@ -22,9 +22,10 @@ UV_RUN := uv run --locked
 #     around ':' in slices with complex expressions, which E203 rejects.
 PYCODESTYLE_ARGS := --max-line-length=79 --max-doc-length=72 \
 	--ignore=E121,E123,E126,E203,E226,E24,E704,W503
-PY_SOURCES := src tests
+PY_SOURCES := src tests scripts
 
-.PHONY: help sync lock format format-check lint typecheck test coverage check clean
+.PHONY: help sync lock format format-check lint typecheck test coverage check \
+	fixtures clean
 
 help: ## List available recipes
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -57,6 +58,9 @@ coverage: ## Run the test suite with branch coverage
 	$(UV_RUN) pytest --cov --cov-report=term-missing
 
 check: format-check lint typecheck test ## Run all quality gates (same set as CI)
+
+fixtures: ## Re-record test fixtures from the live sources (needs network)
+	$(UV_RUN) python scripts/record_fixtures.py
 
 clean: ## Remove caches and build output (keeps .venv)
 	rm -rf .mypy_cache .pytest_cache .ruff_cache .coverage htmlcov build dist
