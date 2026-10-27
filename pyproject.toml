@@ -26,6 +26,7 @@ build-backend = "uv_build"
 # PEP 735 groups; `uv sync` installs "dev" by default.
 [dependency-groups]
 dev = [
+    "ipykernel>=7.4.0",
     "mypy>=2.4",
     "pycodestyle>=2.15",
     "pytest>=9.1",
