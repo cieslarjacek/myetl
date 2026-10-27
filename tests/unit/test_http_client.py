@@ -99,6 +99,12 @@ def test_default_client_identifies_itself_and_has_timeouts() -> None:
     assert not client.follow_redirects
 
 
+def test_client_sends_given_user_agent() -> None:
+    client = create_http_client(user_agent="probe/1.0")
+
+    assert client.headers["User-Agent"] == "probe/1.0"
+
+
 # --------------------------------------------------------------------
 # Retries
 # --------------------------------------------------------------------

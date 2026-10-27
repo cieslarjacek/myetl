@@ -76,7 +76,7 @@ class RetryPolicy:
     """When and how often a failed request is repeated.
 
     Attributes:
-        backoff_seconds: How many seconds wait before each retry.
+        backoff_seconds: How many seconds to wait before each retry.
             Its length is the number of retries. ``(1.0, 2.0, 4.0)``
             means up to four attempts in total.
         retry_statuses: HTTP statuses worth retrying (rate limiting
@@ -136,8 +136,8 @@ def create_http_client(
             request. It identifies the pipeline to source servers.
 
     Returns:
-        A client with the time limits and :data:`USER_AGENT`. Redirects
-        are not followed, so a moved source fails loudly.
+        A client with the time limits and the ``User-Agent`` header.
+        Redirects are not followed, so a moved source fails loudly.
     """
     return httpx.Client(
         timeout=timeouts.as_httpx(),
@@ -174,7 +174,6 @@ class HttpFetcher:
         self._client = client or create_http_client()
         self._retry_policy = retry_policy
         self._sleep = sleep
-        self._success_code = _HTTP_OK
 
     def __enter__(self) -> Self:
         """Return the fetcher itself."""
@@ -245,7 +244,7 @@ class HttpFetcher:
             response = self._client.get(url)
         except httpx.TransportError as error:
             raise _TransientError(type(error).__name__) from error
-        if response.status_code == self._success_code:
+        if response.status_code == _HTTP_OK:
             _logger.info("%d bytes from %s", len(response.content), url)
             return response.content
         reason = f"HTTP {response.status_code}"
