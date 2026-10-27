@@ -38,9 +38,6 @@ USER_AGENT: Final[str] = (
     f"myetl/{__version__} (+https://github.com/cieslarjacek/myetl)"
 )
 
-#: The only status a request succeeds with.
-_HTTP_OK: Final[int] = 200
-
 _logger = logging.getLogger(__name__)
 
 
@@ -87,7 +84,15 @@ class RetryPolicy:
     """
 
     backoff_seconds: tuple[float, ...] = (1.0, 2.0, 4.0)
-    retry_statuses: frozenset[int] = frozenset({429, 500, 502, 503, 504})
+    retry_statuses: frozenset[int] = frozenset(
+        {
+            httpx.codes.TOO_MANY_REQUESTS,
+            httpx.codes.INTERNAL_SERVER_ERROR,
+            httpx.codes.BAD_GATEWAY,
+            httpx.codes.SERVICE_UNAVAILABLE,
+            httpx.codes.GATEWAY_TIMEOUT,
+        }
+    )
 
     def __post_init__(self) -> None:
         """Reject negative waits."""
@@ -244,7 +249,7 @@ class HttpFetcher:
             response = self._client.get(url)
         except httpx.TransportError as error:
             raise _TransientError(type(error).__name__) from error
-        if response.status_code == _HTTP_OK:
+        if response.status_code == httpx.codes.OK:
             _logger.info("%d bytes from %s", len(response.content), url)
             return response.content
         reason = f"HTTP {response.status_code}"
