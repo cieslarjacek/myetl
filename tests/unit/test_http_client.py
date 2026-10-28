@@ -156,6 +156,23 @@ def test_does_not_retry_other_statuses(status: int) -> None:
     assert recorder.waits == []
 
 
+def test_undecodable_body_fails_without_retry() -> None:
+    def corrupt_gzip(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, headers={"Content-Encoding": "gzip"}, content=b"not gzip"
+        )
+
+    recorder = RequestRecorder(corrupt_gzip)
+
+    with pytest.raises(FetchError, match="DecodingError") as raised:
+        recorder.fetcher()(URL)
+
+    assert raised.value.url == URL
+    assert isinstance(raised.value.__cause__, httpx.DecodingError)
+    assert len(recorder.requests) == 1
+    assert recorder.waits == []
+
+
 def test_custom_policy_without_retries_fails_on_first_error() -> None:
     recorder = RequestRecorder(respond_in_turn(503))
 

@@ -205,8 +205,9 @@ class HttpFetcher:
 
         Raises:
             FetchError: If the URL is not ``https``, the server answers
-                with a status that is not retried, or every attempt
-                fails.
+                with a status that is not retried, the response cannot
+                be read (e.g. a corrupt compressed body) or every
+                attempt fails.
         """
         if urlsplit(url).scheme != "https":
             raise FetchError(url, "refusing non-https URL")
@@ -242,13 +243,17 @@ class HttpFetcher:
         Raises:
             _TransientError: On a timeout, a connection error or a
                 retryable status.
-            FetchError: On any other status than 200.
+            FetchError: On any other status than 200 or on any other
+                ``httpx`` error (e.g. undecodable body).
         """
         _logger.info("GET %s", url)
         try:
             response = self._client.get(url)
         except httpx.TransportError as error:
             raise _TransientError(type(error).__name__) from error
+        except httpx.HTTPError as error:
+            reason = f"{type(error).__name__} ({error})"
+            raise FetchError(url, reason) from error
         if response.status_code == httpx.codes.OK:
             _logger.info("%d bytes from %s", len(response.content), url)
             return response.content
