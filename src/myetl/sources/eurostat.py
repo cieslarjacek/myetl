@@ -36,8 +36,8 @@ from myetl._docstrings import share_docstring
 from myetl.http_client import Fetcher
 from myetl.sources.response_validation import (
     SourceResponse,
-    check_columns,
     read_csv_header,
+    validate_columns,
 )
 
 #: SDMX 3.0 data endpoint for Eurostat dataflows.
@@ -197,10 +197,9 @@ class Dataset:
             ),
         ]
         query = urlencode(query_params, safe=request_settings.safe_characters)
-        dataset_code = self.code.upper()
-        return f"{request_settings.base_url}/{dataset_code}/{self.version}?{
-            query
-        }"
+        dataflow_path = f"{self.code.upper()}/{self.version}"
+
+        return f"{request_settings.base_url}/{dataflow_path}?{query}"
 
     def fetch_csv(
         self, url_fetcher: Fetcher, period_range: PeriodRange | None = None
@@ -226,7 +225,7 @@ class Dataset:
             get_value_code(column_name) for column_name in csv_header
         ]
 
-        check_columns(response, column_codes, REQUIRED_COLUMNS)
+        validate_columns(response, column_codes, REQUIRED_COLUMNS)
 
         return response
 

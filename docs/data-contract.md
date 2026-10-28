@@ -49,11 +49,13 @@ aggregating happen in the transform step.
 
 Every response is checked on arrival, before it is used or cached
 (`myetl.sources`):
+
 * A CSV must be UTF-8, have at least one data row and every column
-  the project reads (Eurostat columns matched by code).
+   the project reads (Eurostat columns matched by code).
 * A World Bank page must be `[metadata, rows]` with a page count
-  and object rows.
-* A failed check stops that source with an error naming the URL.
+   and object rows.
+
+A failed check stops that source with an error naming the URL.
 
 ### 2.1 Our World in Data: energy dataset
 

@@ -19,8 +19,8 @@ from typing import Final
 from myetl.http_client import Fetcher
 from myetl.sources.response_validation import (
     SourceResponse,
-    check_columns,
     read_csv_header,
+    validate_columns,
 )
 
 #: Full energy dataset (about 9 MB), from its GitHub repository.
@@ -68,6 +68,6 @@ def fetch_energy_csv(url_fetcher: Fetcher) -> SourceResponse:
     """
     response = SourceResponse(ENERGY_CSV_URL, url_fetcher(ENERGY_CSV_URL))
     csv_header = read_csv_header(response)
-    check_columns(response, csv_header, REQUIRED_COLUMNS)
+    validate_columns(response, csv_header, REQUIRED_COLUMNS)
 
     return response

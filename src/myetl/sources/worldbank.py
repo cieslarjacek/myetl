@@ -63,7 +63,7 @@ _ERROR_EXCERPT_CHARACTERS: Final[int] = 200
 type JsonObject = dict[str, object]
 
 
-def _require_positive(name: str, value: int) -> None:
+def _validate_positive(name: str, value: int) -> None:
     """Raise if ``value`` is less than 1.
 
     Args:
@@ -103,7 +103,7 @@ class RequestUrlSettings:
 
     def __post_init__(self) -> None:
         """Reject a page size below 1."""
-        _require_positive("page_size", self.page_size)
+        _validate_positive("page_size", self.page_size)
 
 
 #: Request URL settings used by the pipeline.
@@ -193,11 +193,11 @@ class Indicator:
     """A World Development Indicators series.
 
     Attributes:
-        indicator_code: Indicator code, e.g. ``SP.POP.TOTL``.
+        code: Indicator code, e.g. ``SP.POP.TOTL``.
         target_column: Name of the column the values go to.
     """
 
-    indicator_code: str
+    code: str
     target_column: str
 
     def create_request_url(
@@ -233,7 +233,7 @@ class Indicator:
             ("page", str(page_number)),
         ]
         query = urlencode(query_params, safe=request_settings.safe_characters)
-        indicator_path = f"country/all/indicator/{self.indicator_code}"
+        indicator_path = f"country/all/indicator/{self.code}"
 
         return f"{request_settings.base_url}/{indicator_path}?{query}"
 
@@ -241,7 +241,6 @@ class Indicator:
         self,
         url_fetcher: Fetcher,
         year_range: YearRange,
-        page_number: int = FIRST_PAGE_NUMBER,
         request_settings: RequestUrlSettings = REQUEST_URL_SETTINGS,
     ) -> tuple[SourceResponse, ...]:
         """Download every page, failing on an unexpected page.
@@ -263,7 +262,7 @@ class Indicator:
             ResponseFormatError: If a page is not ``[metadata, rows]``.
         """
         page_responses: list[SourceResponse] = []
-        for current_page in itertools.count(page_number):
+        for current_page in itertools.count(FIRST_PAGE_NUMBER):
             url = self.create_request_url(
                 year_range, current_page, request_settings
             )

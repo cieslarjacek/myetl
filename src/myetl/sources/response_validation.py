@@ -7,8 +7,8 @@ document fails at once and is never cached or parsed downstream.
 __all__ = [
     "ResponseFormatError",
     "SourceResponse",
-    "check_columns",
     "read_csv_header",
+    "validate_columns",
 ]
 
 import csv
@@ -84,7 +84,7 @@ def read_csv_header(response: SourceResponse) -> tuple[str, ...]:
     return tuple(csv_header)
 
 
-def check_columns(
+def validate_columns(
     response: SourceResponse,
     response_columns: Iterable[str],
     required_columns: Sequence[str],

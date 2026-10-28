@@ -205,7 +205,7 @@ def to_json_bytes(document: object) -> bytes:
     return (text + "\n").encode("utf-8")
 
 
-def require_countries(
+def validate_countries(
     found: Iterable[str], expected: frozenset[str], source: str
 ) -> None:
     """Raise if a country key in scope is missing from a source.
@@ -213,7 +213,7 @@ def require_countries(
     Args:
         found: Country keys present in the source.
         expected: Country keys in scope.
-        source: Source name, for the error message.
+        source: Source name for the error message.
 
     Raises:
         RecordingError: If a country key is missing.
@@ -248,15 +248,13 @@ def record_owid(url_fetcher: Fetcher) -> list[Fixture]:
     response = owid.fetch_energy_csv(url_fetcher)
     csv_text = response.content.decode("utf-8")
     csv_header, *rows = csv.reader(io.StringIO(csv_text, newline=""))
-    year_column_index, iso_column_index = (
-        csv_header.index("year"),
-        csv_header.index("iso_code"),
-    )
+    year_column_index = csv_header.index("year")
+    iso_column_index = csv_header.index("iso_code")
     slice_rows = [
         row for row in rows if int(row[year_column_index]) in SLICE_YEARS
     ]
 
-    require_countries(
+    validate_countries(
         (row[iso_column_index] for row in slice_rows), ISO3_CODES, "OWID"
     )
     slice_csv = to_csv_bytes(csv_header, slice_rows)
@@ -292,7 +290,7 @@ def record_eurostat(url_fetcher: Fetcher) -> list[Fixture]:
         fixture, labels = _record_eurostat_slice(url_fetcher, eurostat_slice)
         fixtures.append(fixture)
         labels_seen |= labels
-    require_countries(labels_seen, EUROSTAT_NAMES, "Eurostat")
+    validate_countries(labels_seen, EUROSTAT_NAMES, "Eurostat")
     return fixtures
 
 
@@ -322,22 +320,25 @@ def _record_eurostat_slice(
     return Fixture(fixture_path, response.url, response.content), labels_found
 
 
-def geo_labels(content: bytes) -> frozenset[str]:
+def geo_labels(csv_content: bytes) -> frozenset[str]:
     """Return the ``geo`` labels of a checked SDMX-CSV response.
 
     Columns are matched by code: with ``labels=both`` the header reads
     ``"geo: Geopolitical entity (reporting)"``, not ``"geo"``.
 
     Args:
-        content: Response body, already checked by
+        csv_content: Response body, already checked by
             :meth:`myetl.sources.eurostat.Dataset.fetch_csv`.
 
     Returns:
         The label of every ``geo`` value, countries and aggregates.
     """
-    csv_header, *rows = csv.reader(io.StringIO(content.decode("utf-8")))
-    column_codes = [eurostat.get_value_code(name) for name in csv_header]
+    csv_header, *rows = csv.reader(io.StringIO(csv_content.decode("utf-8")))
+    column_codes = [
+        eurostat.get_value_code(column_name) for column_name in csv_header
+    ]
     geo_column_index = column_codes.index(eurostat.GEO_COLUMN)
+
     return frozenset(
         eurostat.get_value_label(row[geo_column_index]) for row in rows
     )
@@ -381,15 +382,17 @@ def _record_indicator(
         RecordingError: If a country in scope is missing, or the slice
             fits on one page (pagination would go untested).
     """
-    source = f"World Bank {indicator.indicator_code}"
+    source_name = f"World Bank {indicator.code}"
     page_responses = indicator.fetch_pages(
-        url_fetcher, SLICE_YEARS, PAGE_NUMBER, WORLD_BANK_URL_SETTINGS
+        url_fetcher, SLICE_YEARS, WORLD_BANK_URL_SETTINGS
     )
-    indicator_folder = Path("worldbank") / indicator.indicator_code
+    indicator_folder = Path("worldbank") / indicator.code
     fixtures: list[Fixture] = []
     country_codes_found: set[str] = set()
 
-    for page_number, page_response in enumerate(page_responses, start=1):
+    for page_number, page_response in enumerate(
+        page_responses, start=worldbank.FIRST_PAGE_NUMBER
+    ):
         page_rows = worldbank.parse_page(page_response).rows
         country_codes_found.update(
             str(row["countryiso3code"]) for row in page_rows
@@ -400,9 +403,11 @@ def _record_indicator(
             Fixture(fixture_path, page_response.url, indented_json)
         )
 
-    require_countries(country_codes_found, ISO3_CODES, source)
+    validate_countries(country_codes_found, ISO3_CODES, source_name)
     if len(fixtures) < 2:
-        raise RecordingError(f"{source} fits on one page; lower page size")
+        raise RecordingError(
+            f"{source_name} fits on one page; lower page size"
+        )
 
     return fixtures
 
@@ -498,12 +503,12 @@ def record_all(
     fixtures: list[Fixture] = []
     failed_sources: list[str] = []
 
-    for name, recorder in recorders.items():
+    for source_name, recorder in recorders.items():
         try:
             source_fixtures = recorder(url_fetcher)
         except SOURCE_ERRORS as error:
-            failed_sources.append(name)
-            failure_message = f"{name}: {type(error).__name__}: {error}"
+            failed_sources.append(source_name)
+            failure_message = f"{source_name}: {type(error).__name__}: {error}"
             report("FAILED", failure_message, sys.stderr)
             continue
         fixtures.extend(source_fixtures)
@@ -513,27 +518,33 @@ def record_all(
     return RecordingResult(tuple(fixtures), tuple(failed_sources))
 
 
-def main(url_fetcher: Fetcher, root: Path = FIXTURES_DIR) -> int:
+def main(url_fetcher: Fetcher, root_directory: Path = FIXTURES_DIR) -> int:
     """Record every source, then save the fixtures if all succeeded.
 
     Args:
         url_fetcher: A callable that downloads a URL.
-        root: Fixtures directory.
+        root_directory: Fixtures directory.
 
     Returns:
         Process exit status: 0 on success, 1 if any source failed.
     """
-    result = record_all(url_fetcher)
-    if result.failed_sources:
-        failed = len(result.failed_sources)
+    recording_result = record_all(url_fetcher)
+    if recording_result.failed_sources:
+        failed_count = len(recording_result.failed_sources)
         report(
             "aborted",
-            f"{failed} source(s) failed; nothing written",
+            f"{failed_count} source(s) failed; nothing written",
             sys.stderr,
         )
         return 1
-    manifest = save_fixtures(result.fixtures, root, datetime.now(UTC))
-    report("written", f"{len(result.fixtures)} fixtures and {manifest.name}")
+    manifest = save_fixtures(
+        recording_result.fixtures, root_directory, datetime.now(UTC)
+    )
+    report(
+        "written",
+        f"{len(recording_result.fixtures)} fixtures and {manifest.name}",
+    )
+
     return 0
 
 
