@@ -33,6 +33,12 @@ from typing import Final
 from urllib.parse import urlencode
 
 from myetl._docstrings import share_docstring
+from myetl.http_client import Fetcher
+from myetl.sources.response_validation import (
+    SourceResponse,
+    check_columns,
+    read_csv_header,
+)
 
 #: SDMX 3.0 data endpoint for Eurostat dataflows.
 API_BASE_URL: Final[str] = (
@@ -155,12 +161,12 @@ class Dataset:
     """A Eurostat dataflow with this project's fixed filters.
 
     Attributes:
-        dataset_code: Dataset code, e.g. ``nrg_ind_ren``.
+        code: Dataset code, e.g. ``nrg_ind_ren``.
         filters: Fixed dimension filters.
         version: Dataflow version.
     """
 
-    dataset_code: str
+    code: str
     filters: tuple[DimensionFilter, ...]
     version: str = DATAFLOW_VERSION
 
@@ -191,8 +197,38 @@ class Dataset:
             ),
         ]
         query = urlencode(query_params, safe=request_settings.safe_characters)
-        dataset = self.dataset_code.upper()
-        return f"{request_settings.base_url}/{dataset}/{self.version}?{query}"
+        dataset_code = self.code.upper()
+        return f"{request_settings.base_url}/{dataset_code}/{self.version}?{
+            query
+        }"
+
+    def fetch_csv(
+        self, url_fetcher: Fetcher, period_range: PeriodRange | None = None
+    ) -> SourceResponse:
+        """Download the dataset, failing if it is not as expected.
+
+        Args:
+            url_fetcher: A callable that downloads a URL.
+            period_range: First and last period (inclusive), or
+                ``None`` for the full time range.
+
+        Returns:
+            The SDMX-CSV response, byte for byte.
+
+        Raises:
+            ResponseFormatError: If the CSV has no data rows or lacks a
+                column in :data:`REQUIRED_COLUMNS`, matched by code.
+        """
+        url = self.create_request_url(period_range)
+        response = SourceResponse(url, url_fetcher(url))
+        csv_header = read_csv_header(response)
+        column_codes = [
+            get_value_code(column_name) for column_name in csv_header
+        ]
+
+        check_columns(response, column_codes, REQUIRED_COLUMNS)
+
+        return response
 
 
 def _time_filter(
@@ -223,7 +259,7 @@ def _time_filter(
 #: Share of renewable energy (%), annual: overall (``REN``) and in
 #: electricity (``REN_ELC``). Published from 2004.
 RES_SHARE: Final[Dataset] = Dataset(
-    dataset_code="nrg_ind_ren",
+    code="nrg_ind_ren",
     filters=(
         DimensionFilter("FREQ", ("A",)),
         DimensionFilter("UNIT", ("PC",)),
@@ -235,7 +271,7 @@ RES_SHARE: Final[Dataset] = Dataset(
 #: (2 500-4 999 kWh/year), all taxes and levies, in EUR and PPS.
 #: Published from 2007-S1 with the current bands.
 HOUSEHOLD_PRICE: Final[Dataset] = Dataset(
-    dataset_code="nrg_pc_204",
+    code="nrg_pc_204",
     filters=(
         DimensionFilter("FREQ", ("S",)),
         DimensionFilter("SIEC", ("E7000",)),
@@ -257,7 +293,7 @@ HOUSEHOLD_PRICE: Final[Dataset] = Dataset(
 #:   from 2023/2024, and includes peat, oil shale and non-renewable
 #:   waste.
 MONTHLY_GENERATION: Final[Dataset] = Dataset(
-    dataset_code="nrg_cb_pem",
+    code="nrg_cb_pem",
     filters=(
         DimensionFilter("FREQ", ("M",)),
         DimensionFilter("SIEC", ("TOTAL", "RA000", "CF", "CF_R")),

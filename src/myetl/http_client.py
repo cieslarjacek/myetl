@@ -1,17 +1,17 @@
 """HTTP GET with timeouts and retries: the network edge of the pipeline.
 
-Other modules depend only on :data:`Fetch`, a callable that takes a URL
-and returns the response body. :class:`HttpFetcher` is the production
-implementation. Tests pass their own callables or an ``httpx`` mock
-transport, so no test touches the network.
+Other modules depend only on :data:`Fetcher`, a callable that takes
+a URL and returns the response body. :class:`HttpFetcher` is
+the production implementation. Tests pass their own callables
+or an ``httpx`` mock transport, so no test touches the network.
 """
 
 __all__ = [
     "DEFAULT_REQUEST_TIMEOUTS",
     "DEFAULT_RETRY_POLICY",
     "USER_AGENT",
-    "Fetch",
     "FetchError",
+    "Fetcher",
     "HttpFetcher",
     "RequestTimeouts",
     "RetryPolicy",
@@ -31,7 +31,7 @@ import httpx
 from myetl import __version__
 
 #: Downloads a URL and returns the response body.
-type Fetch = Callable[[str], bytes]
+type Fetcher = Callable[[str], bytes]
 
 #: Identifies the pipeline to the data providers.
 USER_AGENT: Final[str] = (
@@ -211,25 +211,25 @@ class HttpFetcher:
         """
         if urlsplit(url).scheme != "https":
             raise FetchError(url, "refusing non-https URL")
-        waits = self._retry_policy.backoff_seconds
-        for attempt, wait in enumerate(waits, start=1):
+        backoff_waits = self._retry_policy.backoff_seconds
+        for attempt, wait_seconds in enumerate(backoff_waits, start=1):
             try:
                 return self._get(url)
-            except _TransientError as failure:
+            except _TransientError as transient_error:
                 _logger.warning(
                     "%s (attempt %d), retrying in %g s: %s",
-                    failure.reason,
+                    transient_error.reason,
                     attempt,
-                    wait,
+                    wait_seconds,
                     url,
                 )
-                self._sleep(wait)
+                self._sleep(wait_seconds)
         try:
             return self._get(url)
-        except _TransientError as failure:
-            attempts = len(waits) + 1
-            reason = f"{failure.reason} after {attempts} attempts"
-            raise FetchError(url, reason) from failure
+        except _TransientError as transient_error:
+            attempt_count = len(backoff_waits) + 1
+            reason = f"{transient_error.reason} after {attempt_count} attempts"
+            raise FetchError(url, reason) from transient_error
 
     def _get(self, url: str) -> bytes:
         """Make one request.

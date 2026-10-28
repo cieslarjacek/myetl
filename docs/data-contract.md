@@ -47,6 +47,14 @@ Raw data is fetched broadly on purpose, as it would be in practice: whole
 files and all countries and aggregates. Selecting, reshaping, matching and
 aggregating happen in the transform step.
 
+Every response is checked on arrival, before it is used or cached
+(`myetl.sources`):
+* A CSV must be UTF-8, have at least one data row and every column
+  the project reads (Eurostat columns matched by code).
+* A World Bank page must be `[metadata, rows]` with a page count
+  and object rows.
+* A failed check stops that source with an error naming the URL.
+
 ### 2.1 Our World in Data: energy dataset
 
 | Item | Value |
@@ -228,13 +236,14 @@ is empty.
 
 `make fixtures` (script `scripts/record_fixtures.py`) records a time
 slice of every source into `tests/fixtures/`, using the same request
-builders as the pipeline and keeping the raw breadth (all countries,
-aggregates and columns):
+builders, HTTP client and response checks as the pipeline and keeping
+the raw breadth (all countries, aggregates and columns):
 
 | Source | Slice | Files |
 |---|---|---|
 | OWID | all rows for 2008–2009, unchanged | `owid/owid-energy-data.csv` |
 | Eurostat | `nrg_ind_ren` 2008–2009; `nrg_pc_204` 2008-S1–2009-S1 (2009 incomplete on purpose); `nrg_cb_pem` 2017-01–2018-06 (the first months with every monthly series; 2018 incomplete on purpose) | `eurostat/{dataset}.csv`, byte for byte |
+| World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 Edge cases in the recorded Eurostat data (2026-10-27), for the transform
 tests:
@@ -246,7 +255,6 @@ tests:
 | `nrg_cb_pem` | `CF_R` for the Netherlands lacks 2017-07 | fossil empty for the Netherlands in 2017 |
 | `nrg_cb_pem` | values flagged `e` (Germany, Lithuania, Luxembourg) | used as published |
 | `nrg_cb_pem` | 2018 has only January–June | every monthly column empty for 2018 |
-| World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 `manifest.json` lists the recording time (UTC), URL, size and SHA-256 of
 every file. The script writes nothing unless every source succeeds, and
