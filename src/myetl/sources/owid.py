@@ -9,6 +9,7 @@ __all__ = [
     "ENERGY_CSV_URL",
     "KEY_COLUMNS",
     "REQUIRED_COLUMNS",
+    "RESOURCE_CODE",
     "fetch_energy_csv",
 ]
 
@@ -28,6 +29,9 @@ ENERGY_CSV_URL: Final[str] = (
     "https://raw.githubusercontent.com/owid/energy-data/master/"
     "owid-energy-data.csv"
 )
+
+#: Identifies the energy CSV among cached responses (OWID's file name).
+RESOURCE_CODE: Final[str] = "owid-energy-data"
 
 #: Columns that identify a row.
 KEY_COLUMNS: Final[tuple[str, ...]] = ("country", "year", "iso_code")
@@ -60,13 +64,16 @@ def fetch_energy_csv(url_fetcher: Fetcher) -> SourceResponse:
         url_fetcher: A callable that downloads a URL.
 
     Returns:
-        The whole CSV, byte for byte.
+        The whole CSV, byte for byte, with :data:`RESOURCE_CODE` as its
+        resource code.
 
     Raises:
         ResponseFormatError: If the CSV has no data rows or lacks a
             column in :data:`REQUIRED_COLUMNS`.
     """
-    response = SourceResponse(ENERGY_CSV_URL, url_fetcher(ENERGY_CSV_URL))
+    response = SourceResponse(
+        RESOURCE_CODE, ENERGY_CSV_URL, url_fetcher(ENERGY_CSV_URL)
+    )
     csv_header = read_csv_header(response)
     validate_columns(response, csv_header, REQUIRED_COLUMNS)
 

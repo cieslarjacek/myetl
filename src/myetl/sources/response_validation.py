@@ -50,12 +50,25 @@ class SourceResponse:
     """A document downloaded from a source.
 
     Attributes:
+        resource_code: What was requested, so the response can be found
+            again: a Eurostat dataset code (``nrg_ind_ren``), a World
+            Bank indicator code (``SP.POP.TOTL``, shared by all its
+            pages) or :data:`myetl.sources.owid.RESOURCE_CODE`.
         url: URL the document was downloaded from.
         content: Response body, byte for byte.
+
+    Raises:
+        ValueError: If ``resource_code`` is empty.
     """
 
+    resource_code: str
     url: str
     content: bytes
+
+    def __post_init__(self) -> None:
+        """Reject an empty resource code."""
+        if not self.resource_code:
+            raise ValueError(f"empty resource code for {self.url}")
 
 
 def read_csv_header(response: SourceResponse) -> tuple[str, ...]:

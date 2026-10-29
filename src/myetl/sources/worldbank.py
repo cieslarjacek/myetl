@@ -12,8 +12,8 @@ __all__ = [
     "FIRST_YEAR",
     "FORMAT_PARAMS",
     "GDP_PPP",
-    "INDICATORS",
     "PAGE_SIZE",
+    "PIPELINE_INDICATORS",
     "POPULATION",
     "REQUEST_URL_SETTINGS",
     "URL_SAFE_CHARACTERS",
@@ -21,11 +21,13 @@ __all__ = [
     "JsonObject",
     "Page",
     "RequestUrlSettings",
+    "fetch_indicators",
     "parse_page",
 ]
 
 import itertools
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Final
 from urllib.parse import urlencode
@@ -256,7 +258,8 @@ class Indicator:
             request_settings: How the URLs are built.
 
         Returns:
-            One response per page, byte for byte, in page order.
+            One response per page, byte for byte, in page order, each
+            with the indicator code as its resource code.
 
         Raises:
             ResponseFormatError: If a page is not ``[metadata, rows]``.
@@ -266,7 +269,7 @@ class Indicator:
             url = self.create_request_url(
                 year_range, current_page, request_settings
             )
-            page_response = SourceResponse(url, url_fetcher(url))
+            page_response = SourceResponse(self.code, url, url_fetcher(url))
             page_responses.append(page_response)
             if current_page >= parse_page(page_response).total_pages:
                 break
@@ -283,4 +286,31 @@ GDP_PPP: Final[Indicator] = Indicator(
 POPULATION: Final[Indicator] = Indicator("SP.POP.TOTL", "population")
 
 #: Every indicator the pipeline requests.
-INDICATORS: Final[tuple[Indicator, ...]] = (GDP_PPP, POPULATION)
+PIPELINE_INDICATORS: Final[tuple[Indicator, ...]] = (GDP_PPP, POPULATION)
+
+
+def fetch_indicators(
+    url_fetcher: Fetcher,
+    indicators: Iterable[Indicator],
+    year_range: YearRange,
+) -> tuple[SourceResponse, ...]:
+    """Download every page of each indicator.
+
+    Args:
+        url_fetcher: A callable that downloads a URL.
+        indicators: Indicators to download, e.g.
+            :data:`PIPELINE_INDICATORS`.
+        year_range: Years to request.
+
+    Returns:
+        The page responses, indicator by indicator in the order of
+        ``indicators``, each in page order.
+
+    Raises:
+        ResponseFormatError: If a page is not ``[metadata, rows]``.
+    """
+    return tuple(
+        page_response
+        for indicator in indicators
+        for page_response in indicator.fetch_pages(url_fetcher, year_range)
+    )

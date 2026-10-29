@@ -15,6 +15,7 @@ __all__ = [
     "HOUSEHOLD_PRICE",
     "LABEL_SEPARATOR",
     "MONTHLY_GENERATION",
+    "PIPELINE_DATASETS",
     "REQUEST_URL_SETTINGS",
     "REQUIRED_COLUMNS",
     "RES_SHARE",
@@ -24,10 +25,12 @@ __all__ = [
     "Period",
     "PeriodRange",
     "RequestUrlSettings",
+    "fetch_datasets",
     "get_value_code",
     "get_value_label",
 ]
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Final
 from urllib.parse import urlencode
@@ -212,14 +215,15 @@ class Dataset:
                 ``None`` for the full time range.
 
         Returns:
-            The SDMX-CSV response, byte for byte.
+            The SDMX-CSV response, byte for byte, with the dataset code
+            as its resource code.
 
         Raises:
             ResponseFormatError: If the CSV has no data rows or lacks a
                 column in :data:`REQUIRED_COLUMNS`, matched by code.
         """
         url = self.create_request_url(period_range)
-        response = SourceResponse(url, url_fetcher(url))
+        response = SourceResponse(self.code, url, url_fetcher(url))
         csv_header = read_csv_header(response)
         column_codes = [
             get_value_code(column_name) for column_name in csv_header
@@ -299,3 +303,29 @@ MONTHLY_GENERATION: Final[Dataset] = Dataset(
         DimensionFilter("UNIT", ("GWH",)),
     ),
 )
+
+#: Every dataset the pipeline requests.
+PIPELINE_DATASETS: Final[tuple[Dataset, ...]] = (
+    RES_SHARE,
+    HOUSEHOLD_PRICE,
+    MONTHLY_GENERATION,
+)
+
+
+def fetch_datasets(
+    url_fetcher: Fetcher, datasets: Iterable[Dataset]
+) -> tuple[SourceResponse, ...]:
+    """Download each dataset over its full time range.
+
+    Args:
+        url_fetcher: A callable that downloads a URL.
+        datasets: Datasets to download, e.g.
+            :data:`PIPELINE_DATASETS`.
+
+    Returns:
+        One response per dataset, in the order of ``datasets``.
+
+    Raises:
+        ResponseFormatError: If a dataset response is not as expected.
+    """
+    return tuple(dataset.fetch_csv(url_fetcher) for dataset in datasets)

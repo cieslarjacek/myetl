@@ -57,6 +57,28 @@ Every response is checked on arrival, before it is used or cached
 
 A failed check stops that source with an error naming the URL.
 
+### Raw-data cache
+
+The raw responses of each source are kept as one snapshot per source
+(`myetl.cache`, one zip file per source in `MYETL_CACHE_DIR`, default
+`./data/cache`):
+
+* A snapshot up to 24 h old is used without fetching. Its age counts
+  from when its fetch started; reading it does not extend it.
+* An older snapshot is replaced by a new fetch of the whole source.
+* If that fetch fails (download error or a failed check above), a
+  snapshot up to 90 days old is used instead, with a
+  warning giving its age. Past that, the source is unavailable.
+* A source is fetched all or nothing: one failed request keeps the
+  whole previous snapshot.
+* Each response is stored with the code of what was requested: the
+  Eurostat dataset code, the World Bank indicator code (shared by its
+  pages) or `owid-energy-data`. Later steps look responses up by that
+  code, never by position, and a snapshot without a requested code
+  fails with an error naming the source and the code.
+* Concurrent runs wait for each other per source, so a source is
+  fetched once even when several runs start together.
+
 ### 2.1 Our World in Data: energy dataset
 
 | Item | Value |
@@ -137,7 +159,7 @@ value is empty. The transform step reports every such gap.
 
 | Item | Value |
 |---|---|
-| Request | `GET https://api.worldbank.org/v2/country/all/indicator/{code}?format=json&date=1990:{last}&per_page=1000&page={n}`, one series of requests per indicator, following pages until `page == pages` |
+| Request | `GET https://api.worldbank.org/v2/country/all/indicator/{code}?format=json&date=1990:{last}&per_page=1000&page={n}`, one series of requests per indicator, following pages until `page == pages`. `{last}` is the current calendar year (UTC) at run time. |
 | Raw shape | JSON array `[metadata, rows]`, 262 economies and aggregates (World, regions, income groups; checked 2026-10-27) × 36 years ≈ 9 400 rows per indicator, so about 10 pages. Missing values are `null`. API errors also arrive with HTTP 200, as a one-element array holding `message`, so the shape is checked, not only the status code. |
 | Indicators | `NY.GDP.MKTP.PP.KD`: GDP, PPP (constant 2021 international $), **total**; `SP.POP.TOTL`: population, total |
 | Used | Rows with `countryiso3code` in scope (`country.id` is alpha-2), `date` ≥ 2000. GDP per capita is computed: GDP ÷ population. |

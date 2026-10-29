@@ -360,7 +360,7 @@ def record_world_bank(url_fetcher: Fetcher) -> list[Fixture]:
     """
     return [
         fixture
-        for indicator in worldbank.INDICATORS
+        for indicator in worldbank.PIPELINE_INDICATORS
         for fixture in _record_indicator(url_fetcher, indicator)
     ]
 
