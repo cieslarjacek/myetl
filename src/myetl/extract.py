@@ -151,18 +151,18 @@ class Extractor:
         self,
         cache: SnapshotCache,
         url_fetcher: Fetcher,
-        current_time: NowTime = utc_now,
+        clock: NowTime = utc_now,
     ) -> None:
         """Create an extractor.
 
         Args:
             cache: Where snapshots are kept, with their age limits.
             url_fetcher: A callable that downloads a URL.
-            current_time: Returns the current time. Tests pass a fake.
+            clock: Returns the current time when called.
         """
         self._cache = cache
         self._url_fetcher = url_fetcher
-        self._current_time = current_time
+        self._clock = clock
 
     def extract(self, source: Source) -> Snapshot:
         """Return a usable snapshot of one source.
@@ -185,9 +185,7 @@ class Extractor:
                 _logger.info(
                     "%s: using cached snapshot, %s old",
                     source.name,
-                    describe_age(
-                        self._current_time() - cached_snapshot.fetched_at
-                    ),
+                    describe_age(self._clock() - cached_snapshot.fetched_at),
                 )
                 return cached_snapshot
 
@@ -221,7 +219,7 @@ class Extractor:
             ``True`` if the snapshot is fresh now.
         """
         freshness = classify_age(
-            snapshot.fetched_at, self._current_time(), self._cache.policy
+            snapshot.fetched_at, self._clock(), self._cache.policy
         )
         return freshness is Freshness.FRESH
 
@@ -242,7 +240,7 @@ class Extractor:
             SourceUnavailableError: If the fetch fails and the cached
                 snapshot cannot stand in.
         """
-        fetch_started_at = self._current_time()
+        fetch_started_at = self._clock()
         _logger.info("%s: fetching", source.name)
         try:
             responses = source.responses_fetcher(self._url_fetcher)
@@ -285,7 +283,7 @@ class Extractor:
             reason = f"{fetch_failure}; no cached snapshot"
             raise SourceUnavailableError(source_name, reason) from fetch_error
 
-        now = self._current_time()
+        now = self._clock()
         policy = self._cache.policy
         freshness = classify_age(cached_snapshot.fetched_at, now, policy)
         if freshness is Freshness.EXPIRED:
