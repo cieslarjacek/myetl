@@ -16,9 +16,9 @@ __all__ = [
     "DEFAULT_CACHE_DIRECTORY",
     "DEFAULT_CACHE_POLICY",
     "CachePolicy",
+    "Clock",
     "Freshness",
     "MissingResourceError",
-    "NowTime",
     "Snapshot",
     "SnapshotCache",
     "SnapshotFormatError",
@@ -50,8 +50,8 @@ from typing import Final
 
 from myetl.sources.response_validation import SourceResponse
 
-#: Returns the current time, timezone-aware. Tests pass a fake.
-type NowTime = Callable[[], datetime]
+#: Callable that returns the current time (timezone-aware) like a clock.
+type Clock = Callable[[], datetime]
 
 #: Environment variable that overrides the cache directory.
 CACHE_DIRECTORY_VARIABLE: Final[str] = "MYETL_CACHE_DIR"
@@ -85,7 +85,7 @@ _logger = logging.getLogger(__name__)
 
 
 def utc_now() -> datetime:
-    """Return the current time in UTC - production :data:`NowTime`."""
+    """Return the current time in UTC - production :data:`Clock`."""
     return datetime.now(UTC)
 
 

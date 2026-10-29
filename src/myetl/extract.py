@@ -28,8 +28,8 @@ from types import MappingProxyType
 from typing import Final
 
 from myetl.cache import (
+    Clock,
     Freshness,
-    NowTime,
     Snapshot,
     SnapshotCache,
     classify_age,
@@ -151,7 +151,7 @@ class Extractor:
         self,
         cache: SnapshotCache,
         url_fetcher: Fetcher,
-        clock: NowTime = utc_now,
+        clock: Clock = utc_now,
     ) -> None:
         """Create an extractor.
 
