@@ -41,7 +41,7 @@ import re
 import tempfile
 import zipfile
 import zlib
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -241,7 +241,7 @@ def _validate_source_name(
         expected_pattern: Pattern to match.
 
     Raises:
-        ValueError: If the name is not matching the pattern.
+        ValueError: If the name does not match the pattern.
     """
     if not expected_pattern.fullmatch(source_name):
         raise ValueError(f"invalid source name: {source_name!r}")
@@ -501,7 +501,7 @@ class SnapshotCache:
     policy: CachePolicy = DEFAULT_CACHE_POLICY
 
     @contextmanager
-    def lock(self, source_name: str) -> Iterator[None]:
+    def lock(self, source_name: str) -> Generator[None]:
         """Hold the exclusive lock of a source; wait while it is held.
 
         The lock is an ``flock`` on ``<source>.lock``. Each call opens

@@ -63,7 +63,7 @@ The raw responses of each source are kept as one snapshot per source
 (`myetl.cache`, one zip file per source in `MYETL_CACHE_DIR`, default
 `./data/cache`):
 
-* A snapshot up to 24 h old is used without fetching. Its age counts
+* A snapshot up to 24h old is used without fetching. Its age counts
   from when its fetch started; reading it does not extend it.
 * An older snapshot is replaced by a new fetch of the whole source.
 * If that fetch fails (download error or a failed check above), a

@@ -253,8 +253,6 @@ class Indicator:
         Args:
             url_fetcher: A callable that downloads a URL.
             year_range: Years to request.
-            page_number: Which page of the paginated response to
-                request.
             request_settings: How the URLs are built.
 
         Returns:

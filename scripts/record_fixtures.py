@@ -111,9 +111,6 @@ EUROSTAT_SLICES: Final[tuple[EurostatSlice, ...]] = (
     EurostatSlice(eurostat.MONTHLY_GENERATION, ("2017-01", "2018-06")),
 )
 
-#: Number of the first page to request.
-PAGE_NUMBER: Final[int] = 1
-
 #: Small page size, so the World Bank slice spans several pages.
 WORLD_BANK_URL_SETTINGS: Final[worldbank.RequestUrlSettings] = (
     worldbank.RequestUrlSettings(page_size=200)
