@@ -12,11 +12,12 @@ from myetl.sources.response_validation import (
 )
 
 URL = "https://example.test/data.csv"
+RESOURCE_CODE = "table-a"
 
 
 def csv_response(csv_content: bytes) -> SourceResponse:
     """Wrap ``csv_content`` in a response from :data:`URL`."""
-    return SourceResponse(URL, csv_content)
+    return SourceResponse(RESOURCE_CODE, URL, csv_content)
 
 
 # --------------------------------------------------------------------
@@ -98,3 +99,13 @@ def test_format_error_survives_pickling() -> None:
     assert restored_error.url == URL
     assert restored_error.problem == "no data rows in CSV"
     assert str(restored_error) == str(error)
+
+
+# --------------------------------------------------------------------
+# SourceResponse
+# --------------------------------------------------------------------
+
+
+def test_source_response_rejects_empty_resource_code() -> None:
+    with pytest.raises(ValueError, match="empty resource code"):
+        SourceResponse("", URL, b"country,year\n")

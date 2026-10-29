@@ -59,11 +59,14 @@ def test_world_bank_url_defaults_to_first_page_and_pipeline_size() -> None:
 def test_world_bank_gdp_is_total_not_per_capita() -> None:
     assert worldbank.GDP_PPP.code == "NY.GDP.MKTP.PP.KD"
     assert worldbank.POPULATION.code == "SP.POP.TOTL"
-    assert worldbank.INDICATORS == (worldbank.GDP_PPP, worldbank.POPULATION)
+    assert worldbank.PIPELINE_INDICATORS == (
+        worldbank.GDP_PPP,
+        worldbank.POPULATION,
+    )
 
 
 def test_indicators_have_distinct_target_columns() -> None:
-    columns = [i.target_column for i in worldbank.INDICATORS]
+    columns = [i.target_column for i in worldbank.PIPELINE_INDICATORS]
     assert len(columns) == len(set(columns))
 
 
@@ -120,7 +123,11 @@ API_ERROR = [{"message": [{"id": "120", "value": "Invalid value"}]}]
 
 def page_response(page_document: object) -> SourceResponse:
     """Encode ``page_document`` as a response from :data:`PAGE_URL`."""
-    return SourceResponse(PAGE_URL, json.dumps(page_document).encode())
+    return SourceResponse(
+        worldbank.POPULATION.code,
+        PAGE_URL,
+        json.dumps(page_document).encode(),
+    )
 
 
 def test_parse_page_returns_page_count_and_rows() -> None:
@@ -162,7 +169,9 @@ def test_parse_page_with_unexpected_shape_fails(page_document: object) -> None:
 
 
 def test_parse_page_of_invalid_json_fails() -> None:
-    html_response = SourceResponse(PAGE_URL, b"<html>Unavailable</html>")
+    html_response = SourceResponse(
+        worldbank.POPULATION.code, PAGE_URL, b"<html>Unavailable</html>"
+    )
 
     with pytest.raises(ResponseFormatError, match="expected JSON"):
         worldbank.parse_page(html_response)
@@ -225,3 +234,37 @@ def test_fetch_pages_stops_at_unexpected_page() -> None:
 
     with pytest.raises(ResponseFormatError, match="unexpected response"):
         worldbank.POPULATION.fetch_pages(lambda url: api_error_content, YEARS)
+
+
+def test_fetch_indicators_covers_every_page_of_every_indicator() -> None:
+    paged_api = PagedApiFake(total_pages=2)
+
+    page_responses = worldbank.fetch_indicators(
+        paged_api.serve_page, worldbank.PIPELINE_INDICATORS, YEARS
+    )
+
+    expected_urls = [
+        indicator.create_request_url(YEARS, page_number)
+        for indicator in worldbank.PIPELINE_INDICATORS
+        for page_number in (
+            worldbank.FIRST_PAGE_NUMBER,
+            worldbank.FIRST_PAGE_NUMBER + 1,
+        )
+    ]
+    assert paged_api.requested_urls == expected_urls
+    assert [
+        page_response.url for page_response in page_responses
+    ] == expected_urls
+
+
+def test_fetch_pages_tags_every_page_with_indicator_code() -> None:
+    paged_api = PagedApiFake(total_pages=2)
+
+    page_responses = worldbank.GDP_PPP.fetch_pages(paged_api.serve_page, YEARS)
+
+    assert [
+        page_response.resource_code for page_response in page_responses
+    ] == [
+        "NY.GDP.MKTP.PP.KD",
+        "NY.GDP.MKTP.PP.KD",
+    ]

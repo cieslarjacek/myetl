@@ -126,7 +126,7 @@ def all_responses() -> dict[str, bytes]:
         canned_responses[eurostat_url(eurostat_slice)] = eurostat_csv(
             ALL_EUROSTAT_LABELS
         )
-    for indicator in worldbank.INDICATORS:
+    for indicator in worldbank.PIPELINE_INDICATORS:
         canned_responses |= world_bank_pages(indicator)
     return canned_responses
 

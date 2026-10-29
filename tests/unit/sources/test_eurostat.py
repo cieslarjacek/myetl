@@ -267,3 +267,46 @@ def test_fetch_of_header_only_response_fails() -> None:
 
     with pytest.raises(ResponseFormatError, match="no data rows"):
         RES_SHARE.fetch_csv(lambda url: header_only_csv)
+
+
+def test_fetch_datasets_requests_each_dataset_full_range() -> None:
+    requested_urls: list[str] = []
+
+    def fetch_and_record(url: str) -> bytes:
+        requested_urls.append(url)
+        return sdmx_csv()
+
+    dataset_responses = eurostat.fetch_datasets(
+        fetch_and_record, eurostat.PIPELINE_DATASETS
+    )
+
+    assert requested_urls == [
+        dataset.create_request_url() for dataset in eurostat.PIPELINE_DATASETS
+    ]
+    assert [response.url for response in dataset_responses] == requested_urls
+
+
+def test_datasets_are_the_three_project_datasets() -> None:
+    assert eurostat.PIPELINE_DATASETS == (
+        RES_SHARE,
+        HOUSEHOLD_PRICE,
+        MONTHLY_GENERATION,
+    )
+
+
+def test_fetch_tags_response_with_dataset_code() -> None:
+    response = HOUSEHOLD_PRICE.fetch_csv(lambda url: sdmx_csv())
+
+    assert response.resource_code == "nrg_pc_204"
+
+
+def test_fetch_datasets_tags_each_response_with_its_dataset() -> None:
+    dataset_responses = eurostat.fetch_datasets(
+        lambda url: sdmx_csv(), eurostat.PIPELINE_DATASETS
+    )
+
+    assert [response.resource_code for response in dataset_responses] == [
+        "nrg_ind_ren",
+        "nrg_pc_204",
+        "nrg_cb_pem",
+    ]

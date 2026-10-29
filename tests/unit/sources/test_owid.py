@@ -35,6 +35,12 @@ def test_fetch_returns_whole_csv_byte_for_byte() -> None:
     assert response.content == csv_content
 
 
+def test_fetch_tags_response_with_resource_code() -> None:
+    response = owid.fetch_energy_csv(lambda url: energy_csv())
+
+    assert response.resource_code == owid.RESOURCE_CODE == "owid-energy-data"
+
+
 @pytest.mark.parametrize("required_column", owid.REQUIRED_COLUMNS)
 def test_fetch_without_required_column_fails(required_column: str) -> None:
     header = tuple(
