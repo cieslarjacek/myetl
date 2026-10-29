@@ -1,6 +1,6 @@
 """Unit tests for ``scripts/record_fixtures.py``.
 
-Every test injects a fake ``fetch`` that serves canned responses by
+Every test injects a fake URL fetcher that serves canned responses by
 URL: no network access and no patching of module globals.
 """
 
@@ -13,8 +13,10 @@ from pathlib import Path
 import pytest
 
 import record_fixtures as recorder
+from myetl.http_client import Fetcher, FetchError
 from myetl.scope import COUNTRIES
 from myetl.sources import owid, worldbank
+from myetl.sources.response_validation import ResponseFormatError
 
 OWID_HEADER = ["country", "year", "iso_code", *owid.COLUMNS]
 RECORDED_AT = datetime(2026, 10, 26, 12, 0, tzinfo=UTC)
@@ -29,18 +31,22 @@ def owid_csv(
     rows: Iterable[tuple[str, int, str]], header: list[str] = OWID_HEADER
 ) -> bytes:
     """Build an OWID-like CSV from (name, year, iso3) rows."""
-    values = ["1.0"] * (len(header) - 3)
-    lines = [",".join(header)]
-    lines += [
-        f"{name},{year},{iso3}," + ",".join(values)
+    measure_values = ["1.0"] * (len(header) - 3)
+    csv_lines = [",".join(header)]
+    csv_lines += [
+        f"{name},{year},{iso3}," + ",".join(measure_values)
         for name, year, iso3 in rows
     ]
-    return ("\n".join(lines) + "\n").encode()
+    return ("\n".join(csv_lines) + "\n").encode()
 
 
 def owid_all_countries(years: Iterable[int]) -> bytes:
     """Build an OWID CSV with every country in scope and one region."""
-    rows = [(c.name, year, c.iso3) for c in COUNTRIES for year in years]
+    rows = [
+        (country.name, year, country.iso3)
+        for country in COUNTRIES
+        for year in years
+    ]
     rows += [("Africa (Ember)", year, "") for year in years]
     return owid_csv(rows)
 
@@ -62,20 +68,24 @@ def eurostat_csv(
     labels: Iterable[str], header: Iterable[str] = EUROSTAT_HEADER
 ) -> bytes:
     """Build an SDMX-CSV 2.0 response with one row per geo label."""
-    lines = [",".join(header)]
-    lines += [
+    csv_lines = [",".join(header)]
+    csv_lines += [
         f"dataflow,ESTAT:X(1.0),A: Annual,XX: {label},2008,1.0,,"
         for label in labels
     ]
-    return ("\n".join(lines) + "\n").encode()
+    return ("\n".join(csv_lines) + "\n").encode()
 
 
 def header_without(code: str) -> list[str]:
     """Return the Eurostat header without the column ``code``."""
-    return [name for name in EUROSTAT_HEADER if not name.startswith(code)]
+    return [
+        column_name
+        for column_name in EUROSTAT_HEADER
+        if not column_name.startswith(code)
+    ]
 
 
-ALL_EUROSTAT_LABELS = [c.eurostat_name for c in COUNTRIES] + [
+ALL_EUROSTAT_LABELS = [country.eurostat_name for country in COUNTRIES] + [
     "European Union - 27 countries (from 2020)"
 ]
 
@@ -84,18 +94,21 @@ def world_bank_pages(
     indicator: worldbank.Indicator, total_pages: int = 2
 ) -> dict[str, bytes]:
     """Spread the countries in scope over ``total_pages`` pages."""
-    responses = {}
-    for number in range(1, total_pages + 1):
-        rows = [
-            {"countryiso3code": c.iso3, "date": "2008", "value": 1.0}
-            for c in COUNTRIES[number - 1 :: total_pages]
+    canned_responses = {}
+    for page_offset in range(total_pages):
+        page_number = worldbank.FIRST_PAGE_NUMBER + page_offset
+        page_rows = [
+            {"countryiso3code": country.iso3, "date": "2008", "value": 1.0}
+            for country in COUNTRIES[page_offset::total_pages]
         ]
         url = indicator.create_request_url(
-            recorder.SLICE_YEARS, number, recorder.WORLD_BANK_URL_SETTINGS
+            recorder.SLICE_YEARS,
+            page_number,
+            recorder.WORLD_BANK_URL_SETTINGS,
         )
-        document = [{"page": number, "pages": total_pages}, rows]
-        responses[url] = json.dumps(document).encode()
-    return responses
+        page_metadata = {"page": page_number, "pages": total_pages}
+        canned_responses[url] = json.dumps([page_metadata, page_rows]).encode()
+    return canned_responses
 
 
 def eurostat_url(eurostat_slice: recorder.EurostatSlice) -> str:
@@ -106,25 +119,30 @@ def eurostat_url(eurostat_slice: recorder.EurostatSlice) -> str:
 
 def all_responses() -> dict[str, bytes]:
     """Return valid responses for every URL the recorder requests."""
-    responses = {owid.ENERGY_CSV_URL: owid_all_countries([2007, 2008, 2009])}
+    canned_responses = {
+        owid.ENERGY_CSV_URL: owid_all_countries([2007, 2008, 2009])
+    }
     for eurostat_slice in recorder.EUROSTAT_SLICES:
-        responses[eurostat_url(eurostat_slice)] = eurostat_csv(
+        canned_responses[eurostat_url(eurostat_slice)] = eurostat_csv(
             ALL_EUROSTAT_LABELS
         )
-    for indicator in worldbank.INDICATORS:
-        responses |= world_bank_pages(indicator)
-    return responses
+    for indicator in worldbank.PIPELINE_INDICATORS:
+        canned_responses |= world_bank_pages(indicator)
+    return canned_responses
 
 
-def fake_fetch(responses: Mapping[str, bytes]) -> recorder.Fetch:
-    """Return a fetch serving ``responses``; other URLs fail."""
+def create_url_fetcher(canned_responses: Mapping[str, bytes]) -> Fetcher:
+    """Return a URL fetcher serving ``canned_responses``.
 
-    def fetch(url: str) -> bytes:
-        if url not in responses:
-            raise OSError(f"unexpected URL: {url}")
-        return responses[url]
+    Any other URL fails as a real fetcher would on HTTP 404.
+    """
 
-    return fetch
+    def serve_canned_response(url: str) -> bytes:
+        if url not in canned_responses:
+            raise FetchError(url, "HTTP 404")
+        return canned_responses[url]
+
+    return serve_canned_response
 
 
 # --------------------------------------------------------------------
@@ -133,32 +151,42 @@ def fake_fetch(responses: Mapping[str, bytes]) -> recorder.Fetch:
 
 
 def test_owid_keeps_header_and_only_slice_years() -> None:
-    fetch = fake_fetch(all_responses())
+    url_fetcher = create_url_fetcher(all_responses())
 
-    [fixture] = recorder.record_owid(fetch)
+    [fixture] = recorder.record_owid(url_fetcher)
 
-    header, *rows = fixture.content.decode().splitlines()
-    assert header == ",".join(OWID_HEADER)
-    assert {row.split(",")[1] for row in rows} == {"2008", "2009"}
-    assert any(row.startswith("Africa (Ember),") for row in rows)
+    csv_header, *csv_rows = fixture.content.decode().splitlines()
+    assert csv_header == ",".join(OWID_HEADER)
+    assert {row.split(",")[1] for row in csv_rows} == {"2008", "2009"}
+    assert any(row.startswith("Africa (Ember),") for row in csv_rows)
     assert fixture.path == recorder.OWID_FIXTURE
 
 
 def test_owid_without_required_column_fails() -> None:
-    header = [c for c in OWID_HEADER if c != "fossil_electricity"]
-    rows = [(c.name, 2008, c.iso3) for c in COUNTRIES]
-    fetch = fake_fetch({owid.ENERGY_CSV_URL: owid_csv(rows, header)})
+    header = [
+        column_name
+        for column_name in OWID_HEADER
+        if column_name != "fossil_electricity"
+    ]
+    rows = [(country.name, 2008, country.iso3) for country in COUNTRIES]
+    url_fetcher = create_url_fetcher(
+        {owid.ENERGY_CSV_URL: owid_csv(rows, header)}
+    )
 
-    with pytest.raises(recorder.RecordingError, match="fossil_electricity"):
-        recorder.record_owid(fetch)
+    with pytest.raises(ResponseFormatError, match="fossil_electricity"):
+        recorder.record_owid(url_fetcher)
 
 
 def test_owid_without_country_in_scope_fails() -> None:
-    rows = [(c.name, 2008, c.iso3) for c in COUNTRIES if c.iso3 != "MLT"]
-    fetch = fake_fetch({owid.ENERGY_CSV_URL: owid_csv(rows)})
+    rows = [
+        (country.name, 2008, country.iso3)
+        for country in COUNTRIES
+        if country.iso3 != "MLT"
+    ]
+    url_fetcher = create_url_fetcher({owid.ENERGY_CSV_URL: owid_csv(rows)})
 
     with pytest.raises(recorder.RecordingError, match="MLT"):
-        recorder.record_owid(fetch)
+        recorder.record_owid(url_fetcher)
 
 
 # --------------------------------------------------------------------
@@ -167,62 +195,70 @@ def test_owid_without_country_in_scope_fails() -> None:
 
 
 def test_eurostat_stores_each_dataset_byte_for_byte() -> None:
-    responses = all_responses()
+    canned_responses = all_responses()
 
-    fixtures = recorder.record_eurostat(fake_fetch(responses))
+    fixtures = recorder.record_eurostat(create_url_fetcher(canned_responses))
 
-    assert [f.path.name for f in fixtures] == [
+    assert [fixture.path.name for fixture in fixtures] == [
         "nrg_ind_ren.csv",
         "nrg_pc_204.csv",
         "nrg_cb_pem.csv",
     ]
-    assert all(f.content == responses[f.url] for f in fixtures)
+    assert all(
+        fixture.content == canned_responses[fixture.url]
+        for fixture in fixtures
+    )
 
 
 def test_eurostat_country_absent_from_one_dataset_is_noted(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    responses = all_responses()
-    prices = eurostat_url(recorder.EUROSTAT_SLICES[1])
+    canned_responses = all_responses()
+    prices_url = eurostat_url(recorder.EUROSTAT_SLICES[1])
     labels = [label for label in ALL_EUROSTAT_LABELS if label != "Iceland"]
-    responses[prices] = eurostat_csv(labels)
+    canned_responses[prices_url] = eurostat_csv(labels)
 
-    recorder.record_eurostat(fake_fetch(responses))
+    recorder.record_eurostat(create_url_fetcher(canned_responses))
 
     assert "nrg_pc_204 has no data for: ['Iceland']" in capsys.readouterr().out
 
 
 def test_eurostat_label_matching_no_dataset_fails() -> None:
     labels = [label for label in ALL_EUROSTAT_LABELS if label != "Germany"]
-    responses = {
-        eurostat_url(s): eurostat_csv(labels) for s in recorder.EUROSTAT_SLICES
+    canned_responses = {
+        eurostat_url(eurostat_slice): eurostat_csv(labels)
+        for eurostat_slice in recorder.EUROSTAT_SLICES
     }
 
     with pytest.raises(recorder.RecordingError, match="Germany"):
-        recorder.record_eurostat(fake_fetch(responses))
+        recorder.record_eurostat(create_url_fetcher(canned_responses))
 
 
 @pytest.mark.parametrize("code", ["geo", "TIME_PERIOD", "OBS_VALUE"])
 def test_eurostat_without_required_column_fails(code: str) -> None:
-    content = eurostat_csv(ALL_EUROSTAT_LABELS, header_without(code))
+    csv_content = eurostat_csv(ALL_EUROSTAT_LABELS, header_without(code))
+    canned_responses = {
+        eurostat_url(eurostat_slice): csv_content
+        for eurostat_slice in recorder.EUROSTAT_SLICES
+    }
 
-    with pytest.raises(recorder.RecordingError, match=code):
-        recorder.geo_labels(content, "Eurostat test")
+    with pytest.raises(ResponseFormatError, match=code):
+        recorder.record_eurostat(create_url_fetcher(canned_responses))
 
 
 def test_eurostat_columns_match_by_code_with_or_without_label() -> None:
-    plain_header = [name.split(": ")[0] for name in EUROSTAT_HEADER]
+    plain_header = [
+        column_name.split(": ")[0] for column_name in EUROSTAT_HEADER
+    ]
 
-    labels = recorder.geo_labels(
-        eurostat_csv(["Greece"], plain_header), "Eurostat test"
-    )
+    labels_found = recorder.geo_labels(eurostat_csv(["Greece"], plain_header))
 
-    assert labels == frozenset({"Greece"})
+    assert labels_found == frozenset({"Greece"})
 
 
 def test_eurostat_geo_labels_from_real_response_lines() -> None:
     # Header and first rows of the live nrg_ind_ren response.
-    content = (
+    csv_content = (
         b"STRUCTURE,STRUCTURE_ID,freq: Time frequency,"
         b"nrg_bal: Energy balance,unit: Unit of measure,"
         b"geo: Geopolitical entity (reporting),TIME_PERIOD: Time,"
@@ -237,17 +273,15 @@ def test_eurostat_geo_labels_from_real_response_lines() -> None:
         b"2008,28.788,,\n"
     )
 
-    labels = recorder.geo_labels(content, "Eurostat nrg_ind_ren")
+    labels_found = recorder.geo_labels(csv_content)
 
-    assert labels == frozenset({"Albania", "Austria"})
+    assert labels_found == frozenset({"Albania", "Austria"})
 
 
 def test_eurostat_geo_labels_include_aggregates() -> None:
-    labels = recorder.geo_labels(
-        eurostat_csv(ALL_EUROSTAT_LABELS), "Eurostat test"
-    )
+    labels_found = recorder.geo_labels(eurostat_csv(ALL_EUROSTAT_LABELS))
 
-    assert labels == frozenset(ALL_EUROSTAT_LABELS)
+    assert labels_found == frozenset(ALL_EUROSTAT_LABELS)
 
 
 # --------------------------------------------------------------------
@@ -256,9 +290,11 @@ def test_eurostat_geo_labels_include_aggregates() -> None:
 
 
 def test_world_bank_records_every_page_of_every_indicator() -> None:
-    fixtures = recorder.record_world_bank(fake_fetch(all_responses()))
+    url_fetcher = create_url_fetcher(all_responses())
 
-    assert [f.path.as_posix() for f in fixtures] == [
+    fixtures = recorder.record_world_bank(url_fetcher)
+
+    assert [fixture.path.as_posix() for fixture in fixtures] == [
         "worldbank/NY.GDP.MKTP.PP.KD/page-1.json",
         "worldbank/NY.GDP.MKTP.PP.KD/page-2.json",
         "worldbank/SP.POP.TOTL/page-1.json",
@@ -267,27 +303,27 @@ def test_world_bank_records_every_page_of_every_indicator() -> None:
 
 
 def test_world_bank_error_message_fails() -> None:
-    url = worldbank.GDP_PPP.create_request_url(
-        recorder.SLICE_YEARS, 1, recorder.WORLD_BANK_URL_SETTINGS
+    first_page_url = worldbank.GDP_PPP.create_request_url(
+        recorder.SLICE_YEARS,
+        worldbank.FIRST_PAGE_NUMBER,
+        recorder.WORLD_BANK_URL_SETTINGS,
     )
-    error = [{"message": [{"id": "120", "value": "Invalid value"}]}]
-    fetch = fake_fetch({url: json.dumps(error).encode()})
+    api_error = [{"message": [{"id": "120", "value": "Invalid value"}]}]
+    url_fetcher = create_url_fetcher(
+        {first_page_url: json.dumps(api_error).encode()}
+    )
 
-    with pytest.raises(recorder.RecordingError, match="unexpected response"):
-        recorder.record_world_bank(fetch)
+    with pytest.raises(ResponseFormatError, match="unexpected response"):
+        recorder.record_world_bank(url_fetcher)
 
 
 def test_world_bank_single_page_fails() -> None:
-    fetch = fake_fetch(world_bank_pages(worldbank.GDP_PPP, total_pages=1))
+    url_fetcher = create_url_fetcher(
+        world_bank_pages(worldbank.GDP_PPP, total_pages=1)
+    )
 
     with pytest.raises(recorder.RecordingError, match="one page"):
-        recorder.record_world_bank(fetch)
-
-
-def test_world_bank_page_count_as_text_is_accepted() -> None:
-    page = recorder.parse_world_bank_page([{"pages": "3"}, []], "test")
-
-    assert page.total_pages == 3
+        recorder.record_world_bank(url_fetcher)
 
 
 # --------------------------------------------------------------------
@@ -296,38 +332,53 @@ def test_world_bank_page_count_as_text_is_accepted() -> None:
 
 
 def test_main_saves_fixtures_and_manifest(tmp_path: Path) -> None:
-    status = recorder.main(fake_fetch(all_responses()), tmp_path)
+    exit_status = recorder.main(create_url_fetcher(all_responses()), tmp_path)
 
     manifest = json.loads((tmp_path / recorder.MANIFEST_NAME).read_text())
-    assert status == 0
+    assert exit_status == 0
     assert len(manifest["files"]) == 8
-    for entry in manifest["files"]:
-        content = (tmp_path / entry["path"]).read_bytes()
-        assert hashlib.sha256(content).hexdigest() == entry["sha256"]
+    for manifest_entry in manifest["files"]:
+        fixture_content = (tmp_path / manifest_entry["path"]).read_bytes()
+        fixture_sha256 = hashlib.sha256(fixture_content).hexdigest()
+        assert fixture_sha256 == manifest_entry["sha256"]
 
 
 def test_main_writes_nothing_when_a_source_fails(tmp_path: Path) -> None:
-    responses = all_responses()
-    del responses[owid.ENERGY_CSV_URL]
+    canned_responses = all_responses()
+    del canned_responses[owid.ENERGY_CSV_URL]
 
-    status = recorder.main(fake_fetch(responses), tmp_path)
+    exit_status = recorder.main(create_url_fetcher(canned_responses), tmp_path)
 
-    assert status == 1
+    assert exit_status == 1
     assert list(tmp_path.iterdir()) == []
 
 
+def test_failed_source_is_reported_with_error_type_and_message(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    canned_responses = all_responses()
+    del canned_responses[owid.ENERGY_CSV_URL]
+
+    recorder.main(create_url_fetcher(canned_responses), tmp_path)
+
+    expected_line = f"FAILED owid: FetchError: HTTP 404: {owid.ENERGY_CSV_URL}"
+    assert expected_line in capsys.readouterr().err
+
+
 def test_save_fixtures_replaces_only_source_folders(tmp_path: Path) -> None:
-    stale = tmp_path / "eurostat" / "old.csv"
-    unrelated = tmp_path / "handmade" / "keep.txt"
-    for path in (stale, unrelated):
-        path.parent.mkdir(parents=True)
-        path.write_text("x")
-    fixture = recorder.Fixture(Path("eurostat") / "new.csv", "https://x", b"y")
+    stale_fixture = tmp_path / "eurostat" / "old.csv"
+    unrelated_file = tmp_path / "handmade" / "keep.txt"
+    for existing_file in (stale_fixture, unrelated_file):
+        existing_file.parent.mkdir(parents=True)
+        existing_file.write_text("x")
+    new_fixture = recorder.Fixture(
+        Path("eurostat") / "new.csv", "https://x", b"y"
+    )
 
-    recorder.save_fixtures([fixture], tmp_path, RECORDED_AT)
+    recorder.save_fixtures([new_fixture], tmp_path, RECORDED_AT)
 
-    assert not stale.exists()
-    assert unrelated.exists()
+    assert not stale_fixture.exists()
+    assert unrelated_file.exists()
     assert (tmp_path / "eurostat" / "new.csv").read_bytes() == b"y"
 
 
@@ -347,8 +398,3 @@ def test_build_manifest_describes_each_fixture() -> None:
             }
         ],
     }
-
-
-def test_fetch_https_refuses_plain_http() -> None:
-    with pytest.raises(recorder.RecordingError, match="non-https"):
-        recorder.fetch_https("http://example.com/data.csv")

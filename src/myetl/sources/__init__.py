@@ -8,6 +8,9 @@ response format.
 * :mod:`myetl.sources.eurostat`: Eurostat SDMX 3.0 API (SDMX-CSV).
 * :mod:`myetl.sources.worldbank`: World Bank Indicators API v2 (JSON).
 
+Each source checks a response before returning it, using the shared
+:mod:`myetl.sources.response_validation`.
+
 Raw data are requested broadly on purpose (whole files, all countries
 and aggregates) - to reflect real live situations where input data
 are not "perfect". The transform step narrows them down. The

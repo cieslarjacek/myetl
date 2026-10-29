@@ -12,33 +12,39 @@ it (all countries and aggregates, all columns), and writes it under
 * World Bank: all economies, 2008-2009, with a small page size so the
   response spans several pages.
 
-The script also checks that every country in scope can be matched in
-each source. Nothing is written unless every source succeeds. Run it
-with ``make fixtures`` and commit the result.
+Each source checks its responses as the pipeline does (see
+:mod:`myetl.sources`). The script also checks that every country in
+scope can be matched in each source. Nothing is written unless every
+source succeeds. Run it with ``make fixtures`` and commit the result.
 """
 
-__all__ = ["main"]
+__all__ = ["main", "record_live_sources"]
 
 import csv
 import hashlib
 import io
-import itertools
 import json
+import logging
 import shutil
 import sys
-import urllib.request
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final, TextIO
-from urllib.parse import urlsplit
 
+from myetl import __version__
+from myetl.http_client import (
+    Fetcher,
+    FetchError,
+    HttpFetcher,
+    create_http_client,
+)
 from myetl.scope import EUROSTAT_NAMES, ISO3_CODES, YearRange
 from myetl.sources import eurostat, owid, worldbank
+from myetl.sources.response_validation import ResponseFormatError
 
-type Fetch = Callable[[str], bytes]
 type JsonObject = dict[str, object]
 
 
@@ -75,19 +81,6 @@ class EurostatSlice:
 
 
 @dataclass(frozen=True, slots=True)
-class WorldBankPage:
-    """The parts of a World Bank response page the recorder uses.
-
-    Attributes:
-        total_pages: Number of pages in the whole response.
-        rows: Observations on this page.
-    """
-
-    total_pages: int
-    rows: tuple[JsonObject, ...]
-
-
-@dataclass(frozen=True, slots=True)
 class RecordingResult:
     """Outcome of recording every source.
 
@@ -100,7 +93,7 @@ class RecordingResult:
     failed_sources: tuple[str, ...]
 
 
-type Recorder = Callable[[Fetch], list[Fixture]]
+type Recorder = Callable[[Fetcher], list[Fixture]]
 
 # ----------------------------------------------------------------------
 # Configuration
@@ -130,49 +123,35 @@ FIXTURES_DIR: Final[Path] = (
 MANIFEST_NAME: Final[str] = "manifest.json"
 OWID_FIXTURE: Final[Path] = Path("owid") / "owid-energy-data.csv"
 
-#: Network settings.
-TIMEOUT_SECONDS: Final[float] = 120.0
-HTTP_OK: Final[int] = 200
+#: Tells the source servers that a recording, not the pipeline, runs.
 USER_AGENT: Final[str] = (
-    "myetl-fixture-recorder (+https://github.com/cieslarjacek/myetl)"
+    f"myetl-fixture-recorder/{__version__}"
+    " (+https://github.com/cieslarjacek/myetl)"
 )
 
-#: Errors that fail one source without stopping the others: network
-#: errors (OSError covers URLError and timeouts), malformed content
-#: (ValueError, KeyError) and failed checks (RecordingError).
-SOURCE_ERRORS: Final = (OSError, ValueError, KeyError, RecordingError)
+#: Console log format: the HTTP client logs each request and retry.
+LOG_FORMAT: Final[str] = "%(levelname)s %(message)s"
+
+#: Logger of the httpx library. At INFO it repeats every request that
+#: :class:`~myetl.http_client.HttpFetcher` already logs.
+HTTPX_LOGGER: Final[str] = "httpx"
+
+#: Errors that fail one source without stopping the others: failed
+#: downloads (FetchError), responses in the wrong format
+#: (ResponseFormatError), other malformed content (ValueError,
+#: KeyError) and failed recorder checks (RecordingError).
+SOURCE_ERRORS: Final = (
+    FetchError,
+    ResponseFormatError,
+    ValueError,
+    KeyError,
+    RecordingError,
+)
 
 
 # ----------------------------------------------------------------------
-# Edges: network and console
+# Edges: console
 # ----------------------------------------------------------------------
-
-
-def fetch_https(url: str) -> bytes:
-    """Download ``url`` and return the response body.
-
-    Args:
-        url: Absolute ``https`` URL.
-
-    Returns:
-        The raw response body.
-
-    Raises:
-        RecordingError: If the URL is not ``https`` or the server does
-            not answer with HTTP 200.
-    """
-    if urlsplit(url).scheme != "https":
-        raise RecordingError(f"refusing non-https URL: {url}")
-    request = urllib.request.Request(  # noqa: S310 (https checked above)
-        url, headers={"User-Agent": USER_AGENT}
-    )
-    with urllib.request.urlopen(  # noqa: S310 (https checked above)
-        request, timeout=TIMEOUT_SECONDS
-    ) as response:
-        if response.status != HTTP_OK:
-            raise RecordingError(f"HTTP {response.status} for {url}")
-        body: bytes = response.read()
-    return body
 
 
 def report(status: str, message: str, stream: TextIO | None = None) -> None:
@@ -187,14 +166,14 @@ def report(status: str, message: str, stream: TextIO | None = None) -> None:
 
 
 # ----------------------------------------------------------------------
-# Serialisation and checks (pure)
+# Serialization and checks (pure)
 # ----------------------------------------------------------------------
 
 
 def to_csv_bytes(
     header: Sequence[str], rows: Iterable[Sequence[str]]
 ) -> bytes:
-    """Serialise CSV rows under a header, with Unix line endings.
+    """Serialize CSV rows under a header, with Unix line endings.
 
     Args:
         header: Column names.
@@ -211,7 +190,7 @@ def to_csv_bytes(
 
 
 def to_json_bytes(document: object) -> bytes:
-    """Serialise a JSON document with indentation, for readable diffs.
+    """Serialize a JSON document with indentation, for readable diffs.
 
     Args:
         document: Parsed JSON value.
@@ -223,25 +202,7 @@ def to_json_bytes(document: object) -> bytes:
     return (text + "\n").encode("utf-8")
 
 
-def require_columns(
-    header: Sequence[str], required: Iterable[str], source: str
-) -> None:
-    """Raise if a required column is missing from a CSV header.
-
-    Args:
-        header: Column names found.
-        required: Column names expected.
-        source: Source name, for the error message.
-
-    Raises:
-        RecordingError: If a required column is missing.
-    """
-    missing = [column for column in required if column not in header]
-    if missing:
-        raise RecordingError(f"{source} lacks columns: {missing}")
-
-
-def require_countries(
+def validate_countries(
     found: Iterable[str], expected: frozenset[str], source: str
 ) -> None:
     """Raise if a country key in scope is missing from a source.
@@ -249,7 +210,7 @@ def require_countries(
     Args:
         found: Country keys present in the source.
         expected: Country keys in scope.
-        source: Source name, for the error message.
+        source: Source name for the error message.
 
     Raises:
         RecordingError: If a country key is missing.
@@ -264,29 +225,38 @@ def require_countries(
 # ----------------------------------------------------------------------
 
 
-def record_owid(fetch: Fetch) -> list[Fixture]:
+def record_owid(url_fetcher: Fetcher) -> list[Fixture]:
     """Download the OWID energy CSV and keep the slice years.
 
     All countries, regions and columns are kept; rows are copied
     unchanged under the original header.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
 
     Returns:
         One fixture with the slice rows.
 
     Raises:
-        RecordingError: If a required column or country is missing.
+        ResponseFormatError: If the CSV has no data rows or lacks a
+            required column.
+        RecordingError: If a country in scope is missing.
     """
-    text = fetch(owid.ENERGY_CSV_URL).decode("utf-8")
-    header, *rows = csv.reader(io.StringIO(text, newline=""))
-    require_columns(header, owid.REQUIRED_COLUMNS, "OWID")
-    year, iso_code = header.index("year"), header.index("iso_code")
-    sliced = [row for row in rows if int(row[year]) in SLICE_YEARS]
-    require_countries((row[iso_code] for row in sliced), ISO3_CODES, "OWID")
-    content = to_csv_bytes(header, sliced)
-    return [Fixture(OWID_FIXTURE, owid.ENERGY_CSV_URL, content)]
+    response = owid.fetch_energy_csv(url_fetcher)
+    csv_text = response.content.decode("utf-8")
+    csv_header, *rows = csv.reader(io.StringIO(csv_text, newline=""))
+    year_column_index = csv_header.index("year")
+    iso_column_index = csv_header.index("iso_code")
+    slice_rows = [
+        row for row in rows if int(row[year_column_index]) in SLICE_YEARS
+    ]
+
+    validate_countries(
+        (row[iso_column_index] for row in slice_rows), ISO3_CODES, "OWID"
+    )
+    slice_csv = to_csv_bytes(csv_header, slice_rows)
+
+    return [Fixture(OWID_FIXTURE, response.url, slice_csv)]
 
 
 # ----------------------------------------------------------------------
@@ -294,7 +264,7 @@ def record_owid(fetch: Fetch) -> list[Fixture]:
 # ----------------------------------------------------------------------
 
 
-def record_eurostat(fetch: Fetch) -> list[Fixture]:
+def record_eurostat(url_fetcher: Fetcher) -> list[Fixture]:
     """Fetch every Eurostat dataset for its slice time range.
 
     A country missing from one dataset is reported but allowed (it
@@ -302,7 +272,7 @@ def record_eurostat(fetch: Fetch) -> list[Fixture]:
     the datasets means its Eurostat name is wrong, and fails.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
 
     Returns:
         One SDMX-CSV fixture per dataset, stored byte for byte.
@@ -314,58 +284,61 @@ def record_eurostat(fetch: Fetch) -> list[Fixture]:
     fixtures: list[Fixture] = []
     labels_seen: set[str] = set()
     for eurostat_slice in EUROSTAT_SLICES:
-        fixture, labels = _record_eurostat_slice(fetch, eurostat_slice)
+        fixture, labels = _record_eurostat_slice(url_fetcher, eurostat_slice)
         fixtures.append(fixture)
         labels_seen |= labels
-    require_countries(labels_seen, EUROSTAT_NAMES, "Eurostat")
+    validate_countries(labels_seen, EUROSTAT_NAMES, "Eurostat")
     return fixtures
 
 
 def _record_eurostat_slice(
-    fetch: Fetch, eurostat_slice: EurostatSlice
+    url_fetcher: Fetcher, eurostat_slice: EurostatSlice
 ) -> tuple[Fixture, frozenset[str]]:
     """Fetch one Eurostat slice and note countries it has no data for.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
         eurostat_slice: Dataset and time range to request.
 
     Returns:
         The fixture and the ``geo`` labels found in it.
     """
-    code = eurostat_slice.dataset.dataset_code
-    url = eurostat_slice.dataset.create_request_url(
-        eurostat_slice.period_range
+    dataset_code = eurostat_slice.dataset.code
+    response = eurostat_slice.dataset.fetch_csv(
+        url_fetcher, eurostat_slice.period_range
     )
-    content = fetch(url)
-    labels = geo_labels(content, f"Eurostat {code}")
-    absent = sorted(EUROSTAT_NAMES - labels)
-    if absent:
-        report("note", f"{code} has no data for: {absent}")
-    return Fixture(Path("eurostat") / f"{code}.csv", url, content), labels
+    labels_found = geo_labels(response.content)
+    absent_labels = sorted(EUROSTAT_NAMES - labels_found)
+
+    if absent_labels:
+        report("note", f"{dataset_code} has no data for: {absent_labels}")
+    fixture_path = Path("eurostat") / f"{dataset_code}.csv"
+
+    return Fixture(fixture_path, response.url, response.content), labels_found
 
 
-def geo_labels(content: bytes, source: str) -> frozenset[str]:
-    """Check an SDMX-CSV response and return its ``geo`` labels.
+def geo_labels(csv_content: bytes) -> frozenset[str]:
+    """Return the ``geo`` labels of a checked SDMX-CSV response.
 
     Columns are matched by code: with ``labels=both`` the header reads
-    ``"TIME_PERIOD: Time"``, not ``"TIME_PERIOD"``.
+    ``"geo: Geopolitical entity (reporting)"``, not ``"geo"``.
 
     Args:
-        content: Response body.
-        source: Source name, for error messages.
+        csv_content: Response body, already checked by
+            :meth:`myetl.sources.eurostat.Dataset.fetch_csv`.
 
     Returns:
         The label of every ``geo`` value, countries and aggregates.
-
-    Raises:
-        RecordingError: If a required column is missing.
     """
-    header, *rows = csv.reader(io.StringIO(content.decode("utf-8")))
-    column_codes = [eurostat.get_value_code(name) for name in header]
-    require_columns(column_codes, eurostat.REQUIRED_COLUMNS, source)
-    geo = column_codes.index(eurostat.GEO_COLUMN)
-    return frozenset(eurostat.get_value_label(row[geo]) for row in rows)
+    csv_header, *rows = csv.reader(io.StringIO(csv_content.decode("utf-8")))
+    column_codes = [
+        eurostat.get_value_code(column_name) for column_name in csv_header
+    ]
+    geo_column_index = column_codes.index(eurostat.GEO_COLUMN)
+
+    return frozenset(
+        eurostat.get_value_label(row[geo_column_index]) for row in rows
+    )
 
 
 # ----------------------------------------------------------------------
@@ -373,77 +346,67 @@ def geo_labels(content: bytes, source: str) -> frozenset[str]:
 # ----------------------------------------------------------------------
 
 
-def record_world_bank(fetch: Fetch) -> list[Fixture]:
+def record_world_bank(url_fetcher: Fetcher) -> list[Fixture]:
     """Fetch every page of every World Bank indicator for the slice.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
 
     Returns:
         The page fixtures of all indicators.
     """
     return [
         fixture
-        for indicator in worldbank.INDICATORS
-        for fixture in _record_indicator(fetch, indicator)
+        for indicator in worldbank.PIPELINE_INDICATORS
+        for fixture in _record_indicator(url_fetcher, indicator)
     ]
 
 
 def _record_indicator(
-    fetch: Fetch, indicator: worldbank.Indicator
+    url_fetcher: Fetcher, indicator: worldbank.Indicator
 ) -> list[Fixture]:
     """Fetch every page of one indicator.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
         indicator: Indicator to request.
 
     Returns:
         One fixture per page: ``worldbank/{code}/page-{n}.json``.
 
     Raises:
+        ResponseFormatError: If a page is not ``[metadata, rows]``.
         RecordingError: If a country in scope is missing, or the slice
             fits on one page (pagination would go untested).
     """
-    source = f"World Bank {indicator.indicator_code}"
+    source_name = f"World Bank {indicator.code}"
+    page_responses = indicator.fetch_pages(
+        url_fetcher, SLICE_YEARS, WORLD_BANK_URL_SETTINGS
+    )
+    indicator_folder = Path("worldbank") / indicator.code
     fixtures: list[Fixture] = []
-    countries: set[str] = set()
-    for number in itertools.count(1):
-        url = indicator.create_request_url(
-            SLICE_YEARS, number, WORLD_BANK_URL_SETTINGS
+    country_codes_found: set[str] = set()
+
+    for page_number, page_response in enumerate(
+        page_responses, start=worldbank.FIRST_PAGE_NUMBER
+    ):
+        page_rows = worldbank.parse_page(page_response).rows
+        country_codes_found.update(
+            str(row["countryiso3code"]) for row in page_rows
         )
-        document = json.loads(fetch(url))
-        page = parse_world_bank_page(document, source)
-        countries.update(str(row["countryiso3code"]) for row in page.rows)
-        folder = Path("worldbank") / indicator.indicator_code
-        path = folder / f"page-{number}.json"
-        fixtures.append(Fixture(path, url, to_json_bytes(document)))
-        if number >= page.total_pages:
-            break
-    require_countries(countries, ISO3_CODES, source)
+        indented_json = to_json_bytes(json.loads(page_response.content))
+        fixture_path = indicator_folder / f"page-{page_number}.json"
+        fixtures.append(
+            Fixture(fixture_path, page_response.url, indented_json)
+        )
+
+    validate_countries(country_codes_found, ISO3_CODES, source_name)
     if len(fixtures) < 2:
-        raise RecordingError(f"{source} fits on one page; lower page size")
+        raise RecordingError(
+            f"{source_name} fits on one page; lower page size"
+        )
+
     return fixtures
-
-
-def parse_world_bank_page(document: object, source: str) -> WorldBankPage:
-    """Check the shape of a decoded World Bank response page.
-
-    Args:
-        document: Decoded JSON response.
-        source: Source name, for the error message.
-
-    Returns:
-        The page count and the rows.
-
-    Raises:
-        RecordingError: If the document is not ``[metadata, rows]``
-            (for example an API error message).
-    """
-    match document:
-        case [{"pages": int() | str() as total_pages}, list(rows)]:
-            return WorldBankPage(int(total_pages), tuple(rows))
-    raise RecordingError(f"{source}: unexpected response {document!r:.200}")
 
 
 # ----------------------------------------------------------------------
@@ -522,12 +485,12 @@ RECORDERS: Final[Mapping[str, Recorder]] = MappingProxyType(
 
 
 def record_all(
-    fetch: Fetch, recorders: Mapping[str, Recorder] = RECORDERS
+    url_fetcher: Fetcher, recorders: Mapping[str, Recorder] = RECORDERS
 ) -> RecordingResult:
     """Run every recorder; a failing source does not stop the others.
 
     Args:
-        fetch: Downloads a URL.
+        url_fetcher: A callable that downloads a URL.
         recorders: Source name -> recorder.
 
     Returns:
@@ -536,42 +499,63 @@ def record_all(
     """
     fixtures: list[Fixture] = []
     failed_sources: list[str] = []
-    for name, recorder in recorders.items():
+
+    for source_name, recorder in recorders.items():
         try:
-            recorded = recorder(fetch)
+            source_fixtures = recorder(url_fetcher)
         except SOURCE_ERRORS as error:
-            failed_sources.append(name)
-            report("FAILED", f"{name}: {error!r}", sys.stderr)
+            failed_sources.append(source_name)
+            failure_message = f"{source_name}: {type(error).__name__}: {error}"
+            report("FAILED", failure_message, sys.stderr)
             continue
-        fixtures.extend(recorded)
-        for fixture in recorded:
+        fixtures.extend(source_fixtures)
+        for fixture in source_fixtures:
             report("fetched", f"{fixture.path} ({len(fixture.content)} bytes)")
+
     return RecordingResult(tuple(fixtures), tuple(failed_sources))
 
 
-def main(fetch: Fetch = fetch_https, root: Path = FIXTURES_DIR) -> int:
+def main(url_fetcher: Fetcher, root_directory: Path = FIXTURES_DIR) -> int:
     """Record every source, then save the fixtures if all succeeded.
 
     Args:
-        fetch: Downloads a URL.
-        root: Fixtures directory.
+        url_fetcher: A callable that downloads a URL.
+        root_directory: Fixtures directory.
 
     Returns:
         Process exit status: 0 on success, 1 if any source failed.
     """
-    result = record_all(fetch)
-    if result.failed_sources:
-        failed = len(result.failed_sources)
+    recording_result = record_all(url_fetcher)
+    if recording_result.failed_sources:
+        failed_count = len(recording_result.failed_sources)
         report(
             "aborted",
-            f"{failed} source(s) failed; nothing written",
+            f"{failed_count} source(s) failed; nothing written",
             sys.stderr,
         )
         return 1
-    manifest = save_fixtures(result.fixtures, root, datetime.now(UTC))
-    report("written", f"{len(result.fixtures)} fixtures and {manifest.name}")
+    manifest = save_fixtures(
+        recording_result.fixtures, root_directory, datetime.now(UTC)
+    )
+    report(
+        "written",
+        f"{len(recording_result.fixtures)} fixtures and {manifest.name}",
+    )
+
     return 0
 
 
+def record_live_sources() -> int:
+    """Record the live sources over HTTPS; the script's entry point.
+
+    Returns:
+        Process exit status of :func:`main`.
+    """
+    logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
+    logging.getLogger(HTTPX_LOGGER).setLevel(logging.WARNING)
+    with create_http_client(user_agent=USER_AGENT) as client:
+        return main(HttpFetcher(client))
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(record_live_sources())

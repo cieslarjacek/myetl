@@ -6,7 +6,7 @@ CSV contains. The scope is implemented in
 [`src/myetl/sources/`](../src/myetl/sources/), one module per source.
 This document and that code change together.
 
-Status: **draft for review** (step 2).
+Status: **approved** (step 2, merged 2026-10-27).
 
 ## 1. Scope
 
@@ -46,6 +46,38 @@ table update. `make fixtures` fails if a label matches no Eurostat data.
 Raw data is fetched broadly on purpose, as it would be in practice: whole
 files and all countries and aggregates. Selecting, reshaping, matching and
 aggregating happen in the transform step.
+
+Every response is checked on arrival, before it is used or cached
+(`myetl.sources`):
+
+* A CSV must be UTF-8, have at least one data row and every column
+   the project reads (Eurostat columns matched by code).
+* A World Bank page must be `[metadata, rows]` with a page count
+   and object rows.
+
+A failed check stops that source with an error naming the URL.
+
+### Raw-data cache
+
+The raw responses of each source are kept as one snapshot per source
+(`myetl.cache`, one zip file per source in `MYETL_CACHE_DIR`, default
+`./data/cache`):
+
+* A snapshot up to 24h old is used without fetching. Its age counts
+  from when its fetch started; reading it does not extend it.
+* An older snapshot is replaced by a new fetch of the whole source.
+* If that fetch fails (download error or a failed check above), a
+  snapshot up to 90 days old is used instead, with a
+  warning giving its age. Past that, the source is unavailable.
+* A source is fetched all or nothing: one failed request keeps the
+  whole previous snapshot.
+* Each response is stored with the code of what was requested: the
+  Eurostat dataset code, the World Bank indicator code (shared by its
+  pages) or `owid-energy-data`. Later steps look responses up by that
+  code, never by position, and a snapshot without a requested code
+  fails with an error naming the source and the code.
+* Concurrent runs wait for each other per source, so a source is
+  fetched once even when several runs start together.
 
 ### 2.1 Our World in Data: energy dataset
 
@@ -127,7 +159,7 @@ value is empty. The transform step reports every such gap.
 
 | Item | Value |
 |---|---|
-| Request | `GET https://api.worldbank.org/v2/country/all/indicator/{code}?format=json&date=1990:{last}&per_page=1000&page={n}`, one series of requests per indicator, following pages until `page == pages` |
+| Request | `GET https://api.worldbank.org/v2/country/all/indicator/{code}?format=json&date=1990:{last}&per_page=1000&page={n}`, one series of requests per indicator, following pages until `page == pages`. `{last}` is the current calendar year (UTC) at run time. |
 | Raw shape | JSON array `[metadata, rows]`, 262 economies and aggregates (World, regions, income groups; checked 2026-10-27) × 36 years ≈ 9 400 rows per indicator, so about 10 pages. Missing values are `null`. API errors also arrive with HTTP 200, as a one-element array holding `message`, so the shape is checked, not only the status code. |
 | Indicators | `NY.GDP.MKTP.PP.KD`: GDP, PPP (constant 2021 international $), **total**; `SP.POP.TOTL`: population, total |
 | Used | Rows with `countryiso3code` in scope (`country.id` is alpha-2), `date` ≥ 2000. GDP per capita is computed: GDP ÷ population. |
@@ -228,13 +260,14 @@ is empty.
 
 `make fixtures` (script `scripts/record_fixtures.py`) records a time
 slice of every source into `tests/fixtures/`, using the same request
-builders as the pipeline and keeping the raw breadth (all countries,
-aggregates and columns):
+builders, HTTP client and response checks as the pipeline and keeping
+the raw breadth (all countries, aggregates and columns):
 
 | Source | Slice | Files |
 |---|---|---|
 | OWID | all rows for 2008–2009, unchanged | `owid/owid-energy-data.csv` |
 | Eurostat | `nrg_ind_ren` 2008–2009; `nrg_pc_204` 2008-S1–2009-S1 (2009 incomplete on purpose); `nrg_cb_pem` 2017-01–2018-06 (the first months with every monthly series; 2018 incomplete on purpose) | `eurostat/{dataset}.csv`, byte for byte |
+| World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 Edge cases in the recorded Eurostat data (2026-10-27), for the transform
 tests:
@@ -246,7 +279,6 @@ tests:
 | `nrg_cb_pem` | `CF_R` for the Netherlands lacks 2017-07 | fossil empty for the Netherlands in 2017 |
 | `nrg_cb_pem` | values flagged `e` (Germany, Lithuania, Luxembourg) | used as published |
 | `nrg_cb_pem` | 2018 has only January–June | every monthly column empty for 2018 |
-| World Bank | all economies, 2008–2009, 200 rows per page (several pages on purpose) | `worldbank/{indicator}/page-{n}.json`, re-indented |
 
 `manifest.json` lists the recording time (UTC), URL, size and SHA-256 of
 every file. The script writes nothing unless every source succeeds, and

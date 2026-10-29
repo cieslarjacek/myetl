@@ -4,17 +4,34 @@ The whole CSV is downloaded: one row per country or region and year,
 from 1900, about 130 columns. Regions have an empty ``iso_code``.
 """
 
-__all__ = ["COLUMNS", "ENERGY_CSV_URL", "KEY_COLUMNS", "REQUIRED_COLUMNS"]
+__all__ = [
+    "COLUMNS",
+    "ENERGY_CSV_URL",
+    "KEY_COLUMNS",
+    "REQUIRED_COLUMNS",
+    "RESOURCE_CODE",
+    "fetch_energy_csv",
+]
 
 from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
+
+from myetl.http_client import Fetcher
+from myetl.sources.response_validation import (
+    SourceResponse,
+    read_csv_header,
+    validate_columns,
+)
 
 #: Full energy dataset (about 9 MB), from its GitHub repository.
 ENERGY_CSV_URL: Final[str] = (
     "https://raw.githubusercontent.com/owid/energy-data/master/"
     "owid-energy-data.csv"
 )
+
+#: Identifies the energy CSV among cached responses (OWID's file name).
+RESOURCE_CODE: Final[str] = "owid-energy-data"
 
 #: Columns that identify a row.
 KEY_COLUMNS: Final[tuple[str, ...]] = ("country", "year", "iso_code")
@@ -38,3 +55,26 @@ COLUMNS: Final[Mapping[str, str]] = MappingProxyType(
 
 #: Every column the project reads from the CSV.
 REQUIRED_COLUMNS: Final[tuple[str, ...]] = (*KEY_COLUMNS, *COLUMNS)
+
+
+def fetch_energy_csv(url_fetcher: Fetcher) -> SourceResponse:
+    """Download the energy CSV, failing if it is not as expected.
+
+    Args:
+        url_fetcher: A callable that downloads a URL.
+
+    Returns:
+        The whole CSV, byte for byte, with :data:`RESOURCE_CODE` as its
+        resource code.
+
+    Raises:
+        ResponseFormatError: If the CSV has no data rows or lacks a
+            column in :data:`REQUIRED_COLUMNS`.
+    """
+    response = SourceResponse(
+        RESOURCE_CODE, ENERGY_CSV_URL, url_fetcher(ENERGY_CSV_URL)
+    )
+    csv_header = read_csv_header(response)
+    validate_columns(response, csv_header, REQUIRED_COLUMNS)
+
+    return response
