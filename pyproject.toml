@@ -15,7 +15,7 @@ classifiers = [
 ]
 # Runtime dependencies are added in the steps that first use them.
 dependencies = [
-    "httpx>=0.28",
+    "httpx2>=2.16",
 ]
 
 [project.urls]

@@ -3,7 +3,7 @@
 Other modules depend only on :data:`Fetcher`, a callable that takes
 a URL and returns the response body. :class:`HttpFetcher` is
 the production implementation. Tests pass their own callables
-or an ``httpx`` mock transport, so no test touches the network.
+or an ``httpx2`` mock transport, so no test touches the network.
 """
 
 __all__ = [
@@ -26,7 +26,7 @@ from types import TracebackType
 from typing import Final, Self
 from urllib.parse import urlsplit
 
-import httpx
+import httpx2
 
 from myetl import __version__
 
@@ -86,11 +86,11 @@ class RetryPolicy:
     backoff_seconds: tuple[float, ...] = (1.0, 2.0, 4.0)
     retry_statuses: frozenset[int] = frozenset(
         {
-            httpx.codes.TOO_MANY_REQUESTS,
-            httpx.codes.INTERNAL_SERVER_ERROR,
-            httpx.codes.BAD_GATEWAY,
-            httpx.codes.SERVICE_UNAVAILABLE,
-            httpx.codes.GATEWAY_TIMEOUT,
+            httpx2.codes.TOO_MANY_REQUESTS,
+            httpx2.codes.INTERNAL_SERVER_ERROR,
+            httpx2.codes.BAD_GATEWAY,
+            httpx2.codes.SERVICE_UNAVAILABLE,
+            httpx2.codes.GATEWAY_TIMEOUT,
         }
     )
 
@@ -120,9 +120,9 @@ class RequestTimeouts:
         if self.connect_seconds <= 0 or self.read_seconds <= 0:
             raise ValueError(f"timeouts must be positive: {self}")
 
-    def as_httpx(self) -> httpx.Timeout:
-        """Return the limits in the form ``httpx`` expects."""
-        return httpx.Timeout(self.read_seconds, connect=self.connect_seconds)
+    def as_httpx2(self) -> httpx2.Timeout:
+        """Return the limits in the form ``httpx2`` expects."""
+        return httpx2.Timeout(self.read_seconds, connect=self.connect_seconds)
 
 
 DEFAULT_RETRY_POLICY: Final[RetryPolicy] = RetryPolicy()
@@ -132,7 +132,7 @@ DEFAULT_REQUEST_TIMEOUTS: Final[RequestTimeouts] = RequestTimeouts()
 def create_http_client(
     timeouts: RequestTimeouts = DEFAULT_REQUEST_TIMEOUTS,
     user_agent: str = USER_AGENT,
-) -> httpx.Client:
+) -> httpx2.Client:
     """Create the HTTP client the pipeline uses by default.
 
     Args:
@@ -144,8 +144,8 @@ def create_http_client(
         A client with the time limits and the ``User-Agent`` header.
         Redirects are not followed, so a moved source fails loudly.
     """
-    return httpx.Client(
-        timeout=timeouts.as_httpx(),
+    return httpx2.Client(
+        timeout=timeouts.as_httpx2(),
         headers={"User-Agent": user_agent},
         follow_redirects=False,
     )
@@ -162,7 +162,7 @@ class HttpFetcher:
 
     def __init__(
         self,
-        client: httpx.Client | None = None,
+        client: httpx2.Client | None = None,
         *,
         retry_policy: RetryPolicy = DEFAULT_RETRY_POLICY,
         sleep: Callable[[float], None] = time.sleep,
@@ -244,17 +244,17 @@ class HttpFetcher:
             _TransientError: On a timeout, a connection error or a
                 retryable status.
             FetchError: On any other status than 200 or on any other
-                ``httpx`` error (e.g. undecodable body).
+                ``httpx2`` error (e.g. undecodable body).
         """
         _logger.info("GET %s", url)
         try:
             response = self._client.get(url)
-        except httpx.TransportError as error:
+        except httpx2.TransportError as error:
             raise _TransientError(type(error).__name__) from error
-        except httpx.HTTPError as error:
+        except httpx2.HTTPError as error:
             reason = f"{type(error).__name__} ({error})"
             raise FetchError(url, reason) from error
-        if response.status_code == httpx.codes.OK:
+        if response.status_code == httpx2.codes.OK:
             _logger.info("%d bytes from %s", len(response.content), url)
             return response.content
         reason = f"HTTP {response.status_code}"
