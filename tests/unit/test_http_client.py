@@ -1,6 +1,6 @@
 """Unit tests for ``myetl.http_client``.
 
-Requests go to an ``httpx.MockTransport``; waits go to a list instead
+Requests go to an ``httpx2.MockTransport``; waits go to a list instead
 of ``time.sleep``. Nothing touches the network.
 """
 
@@ -8,7 +8,7 @@ import logging
 import pickle
 from collections.abc import Callable, Iterator
 
-import httpx
+import httpx2
 import pytest
 
 from myetl.http_client import (
@@ -23,17 +23,17 @@ from myetl.http_client import (
 
 URL = "https://example.test/data.csv"
 
-type Handler = Callable[[httpx.Request], httpx.Response]
+type Handler = Callable[[httpx2.Request], httpx2.Response]
 
 
-def respond_in_turn(*outcomes: int | type[httpx.TransportError]) -> Handler:
+def respond_in_turn(*outcomes: int | type[httpx2.TransportError]) -> Handler:
     """Answer each request with the next status, or raise an error."""
-    remaining: Iterator[int | type[httpx.TransportError]] = iter(outcomes)
+    remaining: Iterator[int | type[httpx2.TransportError]] = iter(outcomes)
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         outcome = next(remaining)
         if isinstance(outcome, int):
-            return httpx.Response(outcome, content=b"body")
+            return httpx2.Response(outcome, content=b"body")
         raise outcome("simulated", request=request)
 
     return handler
@@ -43,15 +43,15 @@ class RequestRecorder:
     """Records requests and waits made by a fetcher under test."""
 
     def __init__(self, handler: Handler) -> None:
-        self.requests: list[httpx.Request] = []
+        self.requests: list[httpx2.Request] = []
         self.waits: list[float] = []
 
-        def recording_handler(request: httpx.Request) -> httpx.Response:
+        def recording_handler(request: httpx2.Request) -> httpx2.Response:
             self.requests.append(request)
             return handler(request)
 
-        self.client = httpx.Client(
-            transport=httpx.MockTransport(recording_handler),
+        self.client = httpx2.Client(
+            transport=httpx2.MockTransport(recording_handler),
             headers={"User-Agent": USER_AGENT},
         )
 
@@ -121,10 +121,10 @@ def test_retries_retryable_status_then_succeeds(status: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "error", [httpx.ConnectError, httpx.ReadTimeout, httpx.ConnectTimeout]
+    "error", [httpx2.ConnectError, httpx2.ReadTimeout, httpx2.ConnectTimeout]
 )
 def test_retries_transport_error_then_succeeds(
-    error: type[httpx.TransportError],
+    error: type[httpx2.TransportError],
 ) -> None:
     recorder = RequestRecorder(respond_in_turn(error, error, 200))
 
@@ -157,8 +157,8 @@ def test_does_not_retry_other_statuses(status: int) -> None:
 
 
 def test_undecodable_body_fails_without_retry() -> None:
-    def corrupt_gzip(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    def corrupt_gzip(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             200, headers={"Content-Encoding": "gzip"}, content=b"not gzip"
         )
 
@@ -168,7 +168,7 @@ def test_undecodable_body_fails_without_retry() -> None:
         recorder.fetcher()(URL)
 
     assert raised.value.url == URL
-    assert isinstance(raised.value.__cause__, httpx.DecodingError)
+    assert isinstance(raised.value.__cause__, httpx2.DecodingError)
     assert len(recorder.requests) == 1
     assert recorder.waits == []
 
@@ -258,10 +258,10 @@ def test_timeouts_reject_non_positive_limits(
         RequestTimeouts(connect, read)
 
 
-def test_timeouts_convert_to_httpx() -> None:
+def test_timeouts_convert_to_httpx2() -> None:
     timeout = RequestTimeouts(
         connect_seconds=5.0, read_seconds=60.0
-    ).as_httpx()
+    ).as_httpx2()
 
     assert timeout.connect == 5.0
     assert timeout.read == 60.0

@@ -132,9 +132,9 @@ USER_AGENT: Final[str] = (
 #: Console log format: the HTTP client logs each request and retry.
 LOG_FORMAT: Final[str] = "%(levelname)s %(message)s"
 
-#: Logger of the httpx library. At INFO it repeats every request that
+#: Logger of the httpx2 library. At INFO it repeats every request that
 #: :class:`~myetl.http_client.HttpFetcher` already logs.
-HTTPX_LOGGER: Final[str] = "httpx"
+HTTPX2_LOGGER: Final[str] = "httpx2"
 
 #: Errors that fail one source without stopping the others: failed
 #: downloads (FetchError), responses in the wrong format
@@ -552,7 +552,7 @@ def record_live_sources() -> int:
         Process exit status of :func:`main`.
     """
     logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
-    logging.getLogger(HTTPX_LOGGER).setLevel(logging.WARNING)
+    logging.getLogger(HTTPX2_LOGGER).setLevel(logging.WARNING)
     with create_http_client(user_agent=USER_AGENT) as client:
         return main(HttpFetcher(client))
 
