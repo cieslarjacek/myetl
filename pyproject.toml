@@ -16,6 +16,7 @@ classifiers = [
 # Runtime dependencies are added in the steps that first use them.
 dependencies = [
     "httpx2>=2.16",
+    "pandas>=3.1",
 ]
 
 [project.urls]
@@ -30,6 +31,7 @@ build-backend = "uv_build"
 dev = [
     "ipykernel>=7.4.0",
     "mypy>=2.4",
+    "pandas-stubs>=3.1.0.261029",
     "pycodestyle>=2.15",
     "pytest>=9.1",
     "pytest-cov>=7.1",
