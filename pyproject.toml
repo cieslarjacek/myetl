@@ -15,7 +15,7 @@ classifiers = [
 ]
 # Runtime dependencies are added in the steps that first use them.
 dependencies = [
-    "httpx2>=2.16",
+    "httpx2>=2.16.2",
     "pandas>=3.1",
 ]
 
@@ -23,19 +23,24 @@ dependencies = [
 Repository = "https://github.com/cieslarjacek/myetl"
 
 [build-system]
-requires = ["uv_build>=0.11.32,<0.12.0"]
+requires = ["uv_build>=0.13.10,<0.14.0"]
 build-backend = "uv_build"
+
+# Oldest uv the project is locked and checked with; an older uv stops
+# with an error naming this version instead of running.
+[tool.uv]
+required-version = ">=0.13.10"
 
 # PEP 735 groups; `uv sync` installs "dev" by default.
 [dependency-groups]
 dev = [
     "ipykernel>=7.4.0",
-    "mypy>=2.4",
+    "mypy>=2.4.1",
     "pandas-stubs>=3.1.0.261029",
-    "pycodestyle>=2.15",
-    "pytest>=9.1",
-    "pytest-cov>=7.1",
-    "ruff>=0.17",
+    "pycodestyle>=2.15.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.6",
 ]
 
 # --------------------------------------------------------------------------- #
