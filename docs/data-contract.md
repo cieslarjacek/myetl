@@ -60,7 +60,7 @@ A failed check stops that source with an error naming the URL.
 ### Raw-data cache
 
 The raw responses of each source are kept as one snapshot per source
-(`myetl.cache`, one zip file per source in `MYETL_CACHE_DIR`, default
+(`myetl.extract.cache`, one zip file per source in `MYETL_CACHE_DIR`, default
 `./data/cache`):
 
 * A snapshot up to 24h old is used without fetching. Its age counts

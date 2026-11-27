@@ -1,4 +1,4 @@
-"""Unit tests for ``myetl.cache``.
+"""Unit tests for ``myetl.extract.cache``.
 
 File-system tests use pytest's ``tmp_path``; no test touches the real
 cache directory.
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from myetl.cache import (
+from myetl.extract.cache import (
     CACHE_DIRECTORY_VARIABLE,
     DEFAULT_CACHE_DIRECTORY,
     DEFAULT_CACHE_POLICY,
@@ -443,7 +443,7 @@ def test_damaged_snapshot_is_ignored_with_warning(
     (tmp_path / "owid.zip").write_bytes(b"not a zip archive")
     cache = SnapshotCache(tmp_path)
 
-    with caplog.at_level(logging.WARNING, logger="myetl.cache"):
+    with caplog.at_level(logging.WARNING, logger="myetl.extract.cache"):
         cached_snapshot = cache.read("owid")
 
     assert cached_snapshot is None
@@ -459,7 +459,7 @@ def test_snapshot_of_other_source_is_ignored_with_warning(
     (tmp_path / "owid.zip").write_bytes(eurostat_file_content)
     cache = SnapshotCache(tmp_path)
 
-    with caplog.at_level(logging.WARNING, logger="myetl.cache"):
+    with caplog.at_level(logging.WARNING, logger="myetl.extract.cache"):
         cached_snapshot = cache.read("owid")
 
     assert cached_snapshot is None
