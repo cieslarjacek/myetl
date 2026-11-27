@@ -10,7 +10,8 @@ For each source, :class:`Extractor`:
 
 A source is fetched all or nothing: if one of its requests fails, the
 previous snapshot is used as a whole, never mixed with new responses.
-The age limits come from the cache's :class:`~myetl.cache.CachePolicy`.
+The age limits come from the cache's
+:class:`~myetl.extract.cache.CachePolicy`.
 """
 
 __all__ = [
@@ -27,15 +28,15 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final
 
-from myetl.cache import (
+from myetl.extract.cache import (
     Clock,
     Freshness,
-    Snapshot,
     SnapshotCache,
     classify_age,
     describe_age,
     utc_now,
 )
+from myetl.extract.snapshot import Snapshot
 from myetl.http_client import Fetcher, FetchError
 from myetl.scope import YearRange
 from myetl.sources import eurostat, owid, worldbank

@@ -1,8 +1,8 @@
-"""Unit tests for ``myetl.extract``.
+"""Unit tests for ``myetl.extract.extractor``.
 
-Every test uses a real :class:`~myetl.cache.SnapshotCache` in pytest's
-``tmp_path``, a fake clock and fake source fetchers: no network access
-and no patching of module globals.
+Every test uses a real :class:`~myetl.extract.cache.SnapshotCache` in
+pytest's ``tmp_path``, a fake clock and fake source fetchers: no network
+access and no patching of module globals.
 """
 
 import json
@@ -15,8 +15,8 @@ from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 
-from myetl.cache import SnapshotCache
-from myetl.extract import (
+from myetl.extract.cache import SnapshotCache
+from myetl.extract.extractor import (
     Extractor,
     Source,
     SourceUnavailableError,
@@ -176,7 +176,7 @@ def test_fresh_snapshot_is_logged_with_its_age(
     cache_snapshot_now(extractor)
     clock.advance(timedelta(hours=3, minutes=20))
 
-    with caplog.at_level(logging.INFO, logger="myetl.extract"):
+    with caplog.at_level(logging.INFO, logger="myetl.extract.extractor"):
         extractor.extract(Source("owid", FakeSourceFetcher()))
 
     [info_record] = caplog.records
@@ -216,7 +216,7 @@ def test_fallback_is_logged_as_warning_with_age(
     cache_snapshot_now(extractor)
     clock.advance(timedelta(days=2, hours=5))
 
-    with caplog.at_level(logging.WARNING, logger="myetl.extract"):
+    with caplog.at_level(logging.WARNING, logger="myetl.extract.extractor"):
         extractor.extract(Source("owid", FakeSourceFetcher(FETCH_FAILURE)))
 
     [warning_record] = caplog.records
