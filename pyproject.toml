@@ -16,6 +16,7 @@ classifiers = [
 # Runtime dependencies are added in the steps that first use them.
 dependencies = [
     "httpx2>=2.16.2",
+    "pandas>=3.1.1",
 ]
 
 [project.urls]
@@ -35,6 +36,7 @@ required-version = ">=0.13.10"
 dev = [
     "ipykernel>=7.4.0",
     "mypy>=2.4.1",
+    "pandas-stubs>=3.1.0.261029",
     "pycodestyle>=2.15.0",
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
@@ -88,7 +90,7 @@ convention = "google"
 python_version = "3.13"
 strict = true
 files = ["src", "tests", "scripts"]
-mypy_path = "scripts"
+mypy_path = ["scripts", "tests/support"]
 warn_unreachable = true
 
 # --------------------------------------------------------------------------- #
@@ -97,7 +99,7 @@ warn_unreachable = true
 [tool.pytest.ini_options]
 minversion = "9.1"
 testpaths = ["tests"]
-pythonpath = ["scripts"]
+pythonpath = ["scripts", "tests/support"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
 markers = [
     "integration: tests that exercise several components together (recorded HTTP only, no live network)",
