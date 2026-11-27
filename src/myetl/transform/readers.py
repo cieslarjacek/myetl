@@ -1,15 +1,15 @@
-"""Readers: the responses of one resource to one table.
+"""Readers: the responses of one resource to one data frame.
 
-A reader knows a file format, not a source: :class:`ReadCsv` reads the
-OWID and Eurostat CSVs alike, :class:`ReadJsonRecords` any JSON
+A reader knows a file format, not a source: :class:`CsvReader` reads the
+OWID and Eurostat CSVs alike, :class:`JsonRecordReader` any JSON
 document that holds a list of records. Responses were checked on
 arrival (:mod:`myetl.sources`), so readers trust their shape.
 """
 
 __all__ = [
     "CSV_ENCODING",
-    "ReadCsv",
-    "ReadJsonRecords",
+    "CsvReader",
+    "JsonRecordReader",
     "Reader",
 ]
 
@@ -22,17 +22,17 @@ from typing import Final, Protocol
 import pandas as pd
 
 from myetl.sources.response_validation import SourceResponse
-from myetl.transform.observations import TableFormatError, require_columns
+from myetl.transform.observations import DfFormatError, require_columns
 
 #: Encoding of every CSV source of the project.
 CSV_ENCODING: Final[str] = "utf-8"
 
 
 class Reader(Protocol):
-    """Turns the responses of one resource into one table."""
+    """Turns the responses of one resource into one data frame."""
 
     def read(self, responses: Sequence[SourceResponse]) -> pd.DataFrame:
-        """Return the responses as one table.
+        """Return the responses as one data frame.
 
         Args:
             responses: Every response of one resource, e.g. all pages of
@@ -45,12 +45,12 @@ class Reader(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
-class ReadCsv:
-    """Read CSV responses as text, keeping empty fields as ``""``.
+class CsvReader:
+    """Reader of CSV responses as text, empty fields kept as ``""``.
 
     Every column is read as text: converting values is the job of
-    :class:`~myetl.transform.steps.ToObservations`, which can tell an
-    empty field from a malformed number.
+    :class:`~myetl.transform.steps.ObservationBuilder`, which can tell
+    an empty field from a malformed number.
 
     Attributes:
         encoding: Text encoding of the CSV.
@@ -68,10 +68,10 @@ class ReadCsv:
             One text column per CSV column.
 
         Raises:
-            TableFormatError: If there are no responses.
+            DfFormatError: If there are no responses.
         """
-        _require_responses(responses, self.__class__.__name__)
-        csv_tables = [
+        _require_responses(responses, type(self).__name__)
+        csv_df = [
             pd.read_csv(
                 io.BytesIO(response.content),
                 dtype=str,
@@ -81,12 +81,12 @@ class ReadCsv:
             for response in responses
         ]
 
-        return pd.concat(csv_tables, ignore_index=True)
+        return pd.concat(csv_df, ignore_index=True)
 
 
 @dataclass(frozen=True, slots=True)
-class ReadJsonRecords:
-    """Read the records of JSON responses into chosen columns.
+class JsonRecordReader:
+    """Reader of the records in JSON responses, into chosen columns.
 
     Attributes:
         fields: Record field -> column name. Nested fields are written
@@ -108,10 +108,10 @@ class ReadJsonRecords:
             One column per entry of :attr:`fields`, in that order.
 
         Raises:
-            TableFormatError: If there are no responses, or a record
+            DfFormatError: If there are no responses, or a record
                 lacks a field.
         """
-        _require_responses(responses, self.__class__.__name__)
+        _require_responses(responses, type(self).__name__)
         records = [
             record
             for response in responses
@@ -120,11 +120,11 @@ class ReadJsonRecords:
         if not records:
             return pd.DataFrame(columns=list(self.fields.values()))
 
-        record_table = pd.json_normalize(records)
-        require_columns(record_table, self.fields, self.__class__.__name__)
-        selected_table = record_table.loc[:, list(self.fields)]
+        record_df = pd.json_normalize(records)
+        require_columns(record_df, self.fields, type(self).__name__)
+        selected_df = record_df.loc[:, list(self.fields)]
 
-        return selected_table.rename(columns=dict(self.fields))
+        return selected_df.rename(columns=dict(self.fields))
 
 
 def _require_responses(
@@ -137,7 +137,7 @@ def _require_responses(
         reader_name: Reader name, for the message.
 
     Raises:
-        TableFormatError: If ``responses`` is empty.
+        DfFormatError: If ``responses`` is empty.
     """
     if not responses:
-        raise TableFormatError(f"{reader_name}: no responses to read")
+        raise DfFormatError(f"{reader_name}: no responses to read")

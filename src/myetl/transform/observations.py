@@ -1,6 +1,6 @@
-"""Observations: the long table format every source is reshaped into.
+"""Observations: the long data format every source is reshaped into.
 
-One row per country, year, sub-period and series, with one value. A
+One row per country, year, sub-period and variable, with one value. A
 sub-period numbers the parts of a year: 1 for annual data, 1-2 for
 half-years, 1-12 for months. Once a source is in this format, the same
 transformers filter, check, aggregate and rename it, whatever the
@@ -14,9 +14,9 @@ __all__ = [
     "FIRST_SUB_PERIOD",
     "OBSERVATION_COLUMNS",
     "PERIOD_PATTERN",
+    "DfFormatError",
     "ObservationColumns",
     "Period",
-    "TableFormatError",
     "parse_period",
     "require_columns",
 ]
@@ -29,8 +29,8 @@ from typing import Final
 import pandas as pd
 
 
-class TableFormatError(ValueError):
-    """A table does not have the shape a transformer expects.
+class DfFormatError(ValueError):
+    """A data frame does not have the shape a transformer expects.
 
     Attributes:
         problem: What was expected and what was found.
@@ -51,29 +51,31 @@ class ObservationColumns:
     """Column names of the observation format.
 
     Attributes:
-        country: ISO 3166-1 alpha-3 code (before matching: the source's
-            own country key).
+        country: The source's own country key, e.g. ``"Austria"``,
+            until :class:`~myetl.transform.steps.CountryFilter` replaces
+            it by the ISO 3166-1 alpha-3 code (``"AUT"``). The output
+            data frame names the column ``country_iso3``.
         period: Period as the source writes it, e.g. ``"2017-07"``;
             replaced by ``year`` and ``sub_period`` once parsed.
         year: Calendar year.
         sub_period: Part of the year: 1 for annual data, 1-2 for
             half-years, 1-12 for months.
-        series: What is measured, e.g. ``"CF_R"``, later the output
+        variable: What is measured, e.g. ``"CF_R"``, later the output
             column name.
         value: The number.
     """
 
-    country: str = "country_iso3"
+    country: str = "country"
     period: str = "period"
     year: str = "year"
     sub_period: str = "sub_period"
-    series: str = "series"
+    variable: str = "variable"
     value: str = "value"
 
     @property
     def observation_key(self) -> tuple[str, str, str, str]:
         """Columns that identify one observation."""
-        return (self.country, self.year, self.sub_period, self.series)
+        return (self.country, self.year, self.sub_period, self.variable)
 
     @property
     def period_key(self) -> tuple[str, str, str]:
@@ -133,12 +135,12 @@ def parse_period(
         The year's month: ``"2008-07"`` gives (2008, 7).
 
     Raises:
-        TableFormatError: If the text is not a year, half-year or month.
+        DfFormatError: If the text is not a year, half-year or month.
     """
     period_match = period_pattern.fullmatch(period_text)
     if period_match is None:
         problem = f"expected a year, half-year or month, found {period_text!r}"
-        raise TableFormatError(problem)
+        raise DfFormatError(problem)
 
     sub_period_text = period_match["half"] or period_match["month"]
     if sub_period_text is None:
@@ -148,25 +150,25 @@ def parse_period(
 
 
 def require_columns(
-    table: pd.DataFrame, required_columns: Iterable[str], step_name: str
+    df: pd.DataFrame, required_columns: Iterable[str], step_name: str
 ) -> None:
-    """Raise if a table lacks a column a transformer needs.
+    """Raise if a data frame lacks a column a transformer needs.
 
     Args:
-        table: Table to check.
+        df: Data frame to check.
         required_columns: Columns the transformer reads.
         step_name: Transformer name, for the message.
 
     Raises:
-        TableFormatError: If a column is missing.
+        DfFormatError: If a column is missing.
     """
-    present_columns = set(table.columns)
+    present_columns = set(df.columns)
     missing_columns = [
         column for column in required_columns if column not in present_columns
     ]
     if missing_columns:
         problem = (
             f"{step_name}: missing columns {missing_columns}; "
-            f"found {list(table.columns)}"
+            f"found {list(df.columns)}"
         )
-        raise TableFormatError(problem)
+        raise DfFormatError(problem)

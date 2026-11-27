@@ -6,7 +6,7 @@ import pytest
 
 from myetl.sources.response_validation import SourceResponse
 from myetl.transform.observations import TableFormatError
-from myetl.transform.readers import ReadCsv, ReadJsonRecords
+from myetl.transform.readers import CsvReader, JsonRecordReader
 
 WORLD_BANK_FIELDS = {
     "countryiso3code": "country",
@@ -42,14 +42,14 @@ def population_record(country: str, value: float | None) -> dict[str, object]:
 
 
 # --------------------------------------------------------------------
-# ReadCsv
+# CsvReader
 # --------------------------------------------------------------------
 
 
 def test_csv_is_read_as_text_with_empty_fields_kept() -> None:
     response = csv_response(b"iso_code,year,wind\nAUT,2008,2.010\nAUT,2009,\n")
 
-    table = ReadCsv().read([response])
+    table = CsvReader().read([response])
 
     assert table.to_dict("records") == [
         {"iso_code": "AUT", "year": "2008", "wind": "2.010"},
@@ -61,7 +61,7 @@ def test_csv_responses_are_concatenated_in_order() -> None:
     first_response = csv_response(b"a,b\n1,2\n")
     second_response = csv_response(b"a,b\n3,4\n")
 
-    table = ReadCsv().read([first_response, second_response])
+    table = CsvReader().read([first_response, second_response])
 
     assert table["a"].tolist() == ["1", "3"]
 
@@ -69,25 +69,25 @@ def test_csv_responses_are_concatenated_in_order() -> None:
 def test_csv_reader_uses_given_encoding() -> None:
     response = csv_response("país\nEspaña\n".encode("latin-1"))
 
-    table = ReadCsv(encoding="latin-1").read([response])
+    table = CsvReader(encoding="latin-1").read([response])
 
     assert table.to_dict("records") == [{"país": "España"}]
 
 
 def test_csv_reader_without_responses_fails() -> None:
-    with pytest.raises(TableFormatError, match="ReadCsv: no responses"):
-        ReadCsv().read([])
+    with pytest.raises(TableFormatError, match="CsvReader: no responses"):
+        CsvReader().read([])
 
 
 # --------------------------------------------------------------------
-# ReadJsonRecords
+# JsonRecordReader
 # --------------------------------------------------------------------
 
 
 def test_json_fields_are_selected_and_renamed() -> None:
     response = json_response([population_record("AUT", 8321496)])
 
-    table = ReadJsonRecords(WORLD_BANK_FIELDS).read([response])
+    table = JsonRecordReader(WORLD_BANK_FIELDS).read([response])
 
     assert table.to_dict("records") == [
         {
@@ -103,7 +103,7 @@ def test_json_pages_are_concatenated_in_order() -> None:
     first_page = json_response([population_record("AUT", 1)])
     second_page = json_response([population_record("BEL", 2)])
 
-    table = ReadJsonRecords(WORLD_BANK_FIELDS).read([first_page, second_page])
+    table = JsonRecordReader(WORLD_BANK_FIELDS).read([first_page, second_page])
 
     assert table["country"].tolist() == ["AUT", "BEL"]
 
@@ -111,7 +111,7 @@ def test_json_pages_are_concatenated_in_order() -> None:
 def test_json_null_value_is_kept_as_missing() -> None:
     response = json_response([population_record("AUT", None)])
 
-    table = ReadJsonRecords(WORLD_BANK_FIELDS).read([response])
+    table = JsonRecordReader(WORLD_BANK_FIELDS).read([response])
 
     assert table["value"].isna().tolist() == [True]
 
@@ -119,7 +119,7 @@ def test_json_null_value_is_kept_as_missing() -> None:
 def test_json_page_without_records_gives_empty_table() -> None:
     response = json_response([])
 
-    table = ReadJsonRecords(WORLD_BANK_FIELDS).read([response])
+    table = JsonRecordReader(WORLD_BANK_FIELDS).read([response])
 
     assert table.empty
     assert list(table.columns) == ["country", "period", "series", "value"]
@@ -129,7 +129,7 @@ def test_json_record_without_field_fails() -> None:
     response = json_response([{"countryiso3code": "AUT", "date": "2008"}])
 
     with pytest.raises(TableFormatError, match=r"indicator\.id"):
-        ReadJsonRecords(WORLD_BANK_FIELDS).read([response])
+        JsonRecordReader(WORLD_BANK_FIELDS).read([response])
 
 
 def test_json_records_position_is_configurable() -> None:
@@ -137,7 +137,7 @@ def test_json_records_position_is_configurable() -> None:
         "table-a", "https://x", json.dumps([[{"a": 1}], "metadata"]).encode()
     )
 
-    table = ReadJsonRecords({"a": "alpha"}, records_position=0).read(
+    table = JsonRecordReader({"a": "alpha"}, records_position=0).read(
         [response]
     )
 
@@ -145,5 +145,5 @@ def test_json_records_position_is_configurable() -> None:
 
 
 def test_json_reader_without_responses_fails() -> None:
-    with pytest.raises(TableFormatError, match="ReadJsonRecords: no"):
-        ReadJsonRecords(WORLD_BANK_FIELDS).read([])
+    with pytest.raises(TableFormatError, match="JsonRecordReader: no"):
+        JsonRecordReader(WORLD_BANK_FIELDS).read([])

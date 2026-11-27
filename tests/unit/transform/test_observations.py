@@ -60,13 +60,13 @@ def test_parse_period_uses_given_annual_sub_period() -> None:
 
 def test_observation_key_is_country_year_sub_period_series() -> None:
     assert OBSERVATION_COLUMNS.observation_key == (
-        "country_iso3",
+        "country",
         "year",
         "sub_period",
         "series",
     )
     assert OBSERVATION_COLUMNS.period_key == (
-        "country_iso3",
+        "country",
         "year",
         "sub_period",
     )
