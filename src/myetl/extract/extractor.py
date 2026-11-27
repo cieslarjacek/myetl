@@ -31,12 +31,12 @@ from typing import Final
 from myetl.extract.cache import (
     Clock,
     Freshness,
-    Snapshot,
     SnapshotCache,
     classify_age,
     describe_age,
     utc_now,
 )
+from myetl.extract.snapshot import Snapshot
 from myetl.http_client import Fetcher, FetchError
 from myetl.scope import YearRange
 from myetl.sources import eurostat, owid, worldbank

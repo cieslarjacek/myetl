@@ -1,13 +1,14 @@
 """Extract: a usable raw snapshot of every source.
 
-1. :mod:`~myetl.extract.cache`: the snapshot value, its zip file
-   format, and the local cache that stores snapshots and judges
-   their age.
-2. :mod:`~myetl.extract.extractor`: the sources the pipeline fetches
+1. :mod:`~myetl.extract.snapshot`: the snapshot value and its zip file
+   format.
+2. :mod:`~myetl.extract.cache`: the local cache that stores snapshots
+   and judges their age.
+3. :mod:`~myetl.extract.extractor`: the sources the pipeline fetches
    and :class:`Extractor`, which reuses a fresh cached snapshot or
    fetches a new one.
 
-The public API of both modules is re-exported here, so callers import
+The public API of these modules is re-exported here, so callers import
 from :mod:`myetl.extract`.
 """
 
@@ -33,6 +34,7 @@ __all__ = [
     "describe_age",
     "encode_snapshot",
     "utc_now",
+    "validate_source_name",
 ]
 
 from myetl.extract.cache import (
@@ -42,15 +44,10 @@ from myetl.extract.cache import (
     CachePolicy,
     Clock,
     Freshness,
-    MissingResourceError,
-    Snapshot,
     SnapshotCache,
-    SnapshotFormatError,
     cache_directory_from_environment,
     classify_age,
-    decode_snapshot,
     describe_age,
-    encode_snapshot,
     utc_now,
 )
 from myetl.extract.extractor import (
@@ -59,4 +56,12 @@ from myetl.extract.extractor import (
     SourceFetcher,
     SourceUnavailableError,
     create_sources,
+)
+from myetl.extract.snapshot import (
+    MissingResourceError,
+    Snapshot,
+    SnapshotFormatError,
+    decode_snapshot,
+    encode_snapshot,
+    validate_source_name,
 )
