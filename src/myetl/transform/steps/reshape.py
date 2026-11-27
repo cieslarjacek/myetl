@@ -2,24 +2,23 @@
 
 A source's data frame into observations.
 
-Coded headers and values (Eurostat's ``"CODE: Label"``) are reduced to
-their code or label, wide data frames are melted, and the observation
-columns are taken with numbers as numbers and periods parsed.
+Column names and values are converted by a function the source
+supplies (e.g. Eurostat's ``"CODE: Label"`` reduced to its code), wide
+data frames are melted, and the observation columns are taken with
+numbers as numbers and periods parsed.
 """
 
 __all__ = [
-    "CODE_SEPARATOR",
-    "ColumnCodeRenamer",
     "ColumnMelter",
+    "ColumnRenamer",
     "ObservationBuilder",
     "PeriodParser",
     "SourceColumns",
-    "ValueCodeExtractor",
-    "ValueLabelExtractor",
+    "ValueExtractor",
 ]
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Final
 
 import pandas as pd
 
@@ -33,72 +32,69 @@ from myetl.transform.observations import (
 )
 from myetl.transform.steps._dataframes import order_columns
 
-#: Separates the code from the label in a coded value or column name,
-#: e.g. ``"AT: Austria"`` (Eurostat SDMX-CSV with ``labels=both``).
-CODE_SEPARATOR: Final[str] = ": "
-
 
 @dataclass(frozen=True, slots=True)
-class ColumnCodeRenamer:
-    """Transformer for renaming coded column names to their code.
+class ColumnRenamer:
+    """Transformer for renaming every column by a function.
 
-    ``"geo: Geopolitical entity (reporting)"`` name becomes ``"geo"``.
-    A name without a separator is kept as it is.
+    With :func:`myetl.sources.eurostat.get_value_code`, the name
+    ``"geo: Geopolitical entity (reporting)"`` becomes ``"geo"``.
 
     Attributes:
-        separator: Separates the code from the label.
+        new_name: Returns the new name of a column name.
     """
 
-    separator: str = CODE_SEPARATOR
+    new_name: Callable[[str], str]
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Return the data frame with code-only column names.
+        """Return the data frame with renamed columns.
 
         Args:
-            df: Data frame with coded column names.
+            df: Data frame to rename.
 
         Returns:
             The same rows under the renamed columns.
 
         Raises:
-            DfFormatError: If two columns end up with the same code.
+            DfFormatError: If two columns end up with the same name.
         """
-        col_name_codes = [
-            str(column_name).partition(self.separator)[0]
-            for column_name in df.columns
+        new_col_names = [
+            self.new_name(str(column_name)) for column_name in df.columns
         ]
-        repeated_codes = sorted(
-            {code for code in col_name_codes if col_name_codes.count(code) > 1}
+        repeated_names = sorted(
+            {name for name in new_col_names if new_col_names.count(name) > 1}
         )
 
-        if repeated_codes:
+        if repeated_names:
             step_name = type(self).__name__
-            problem = f"{step_name}: repeated codes {repeated_codes}"
+            problem = f"{step_name}: repeated names {repeated_names}"
             raise DfFormatError(problem)
 
-        return df.set_axis(col_name_codes, axis="columns")
+        return df.set_axis(new_col_names, axis="columns")
 
 
 @dataclass(frozen=True, slots=True)
-class ValueCodeExtractor:
-    """Transformer for replacing coded values in columns by their code.
+class ValueExtractor:
+    """Transformer for replacing column values by a part of them.
 
-    For example ``"CF_R: Combustible fuels - renewable"`` value becomes
-    ``"CF_R"``.
+    With :func:`myetl.sources.eurostat.get_value_code`, the value
+    ``"CF_R: Combustible fuels - renewable"`` becomes ``"CF_R"``; with
+    :func:`~myetl.sources.eurostat.get_value_label`, ``"EL: Greece"``
+    becomes ``"Greece"``. Missing values stay missing.
 
     Attributes:
-        value_columns: Columns holding coded values.
-        separator: Separates the code from the label.
+        value_columns: Columns whose values are replaced.
+        new_value: Returns the new value of a column's value.
     """
 
     value_columns: tuple[str, ...]
-    separator: str = CODE_SEPARATOR
+    new_value: Callable[[str], str]
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Return the data frame with the code part of coded values.
+        """Return the data frame with the value for each current value.
 
         Args:
-            df: Data frame with coded values in :attr:`value_columns`.
+            df: Data frame with values in :attr:`value_columns`.
 
         Returns:
             The data frame with those columns replaced.
@@ -107,47 +103,12 @@ class ValueCodeExtractor:
             DfFormatError: If a column is missing.
         """
         require_columns(df, self.value_columns, type(self).__name__)
-        col_value_code = {
-            column: df[column].str.partition(self.separator)[0]
+        col_new_value = {
+            column: df[column].map(self.new_value, na_action="ignore")
             for column in self.value_columns
         }
-        return df.assign(**col_value_code)
 
-
-@dataclass(frozen=True, slots=True)
-class ValueLabelExtractor:
-    """Transformer for replacing coded values by their label.
-
-    For example ``"EL: Greece"`` value becomes ``"Greece"``.
-
-    Attributes:
-        value_columns: Columns holding coded values.
-        separator: Separates the code from the label.
-    """
-
-    value_columns: tuple[str, ...]
-    separator: str = CODE_SEPARATOR
-
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Return the data frame with the label part of coded values.
-
-        A value without a separator gets an empty label.
-
-        Args:
-            df: Data frame with coded values in :attr:`value_columns`.
-
-        Returns:
-            The data frame with those columns replaced.
-
-        Raises:
-            DfFormatError: If a column is missing.
-        """
-        require_columns(df, self.value_columns, type(self).__name__)
-        col_value_label = {
-            column: df[column].str.partition(self.separator)[2]
-            for column in self.value_columns
-        }
-        return df.assign(**col_value_label)
+        return df.assign(**col_new_value)
 
 
 @dataclass(frozen=True, slots=True)

@@ -8,10 +8,9 @@ for it. Most work on the observation format
 data frame into it. Import them from this package; the modules group
 them:
 
-1. :mod:`~myetl.transform.steps.reshape`: coded headers and values
-   (:class:`ColumnCodeRenamer`, :class:`ValueCodeExtractor`,
-   :class:`ValueLabelExtractor`) and the way into observations
-   (:class:`ColumnMelter`, :class:`ObservationBuilder`,
+1. :mod:`~myetl.transform.steps.reshape`: column names and values
+   (:class:`ColumnRenamer`, :class:`ValueExtractor`) and the way into
+   observations (:class:`ColumnMelter`, :class:`ObservationBuilder`,
    :class:`PeriodParser`).
 2. :mod:`~myetl.transform.steps.filter`: :class:`CountryFilter`,
    :class:`YearFilter`, :class:`VariablesSelector`.
@@ -22,10 +21,9 @@ them:
 """
 
 __all__ = [
-    "CODE_SEPARATOR",
     "Aggregation",
-    "ColumnCodeRenamer",
     "ColumnMelter",
+    "ColumnRenamer",
     "CountryFilter",
     "DfStep",
     "Difference",
@@ -40,8 +38,7 @@ __all__ = [
     "PlausibilityRule",
     "Ratio",
     "SourceColumns",
-    "ValueCodeExtractor",
-    "ValueLabelExtractor",
+    "ValueExtractor",
     "VariableDeriver",
     "VariableScaler",
     "VariablesSelector",
@@ -78,14 +75,12 @@ from myetl.transform.steps.filter import (
     YearFilter,
 )
 from myetl.transform.steps.reshape import (
-    CODE_SEPARATOR,
-    ColumnCodeRenamer,
     ColumnMelter,
+    ColumnRenamer,
     ObservationBuilder,
     PeriodParser,
     SourceColumns,
-    ValueCodeExtractor,
-    ValueLabelExtractor,
+    ValueExtractor,
 )
 
 

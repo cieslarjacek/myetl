@@ -4,15 +4,15 @@ import pandas as pd
 import pytest
 from observation_dfs import OBSERVATION_HEADER, observation_rows
 
+from myetl.sources import eurostat
 from myetl.transform.observations import DfFormatError
 from myetl.transform.steps import (
-    ColumnCodeRenamer,
     ColumnMelter,
+    ColumnRenamer,
     ObservationBuilder,
     PeriodParser,
     SourceColumns,
-    ValueCodeExtractor,
-    ValueLabelExtractor,
+    ValueExtractor,
 )
 
 # --------------------------------------------------------------------
@@ -20,57 +20,62 @@ from myetl.transform.steps import (
 # --------------------------------------------------------------------
 
 
-def test_coded_column_names_become_codes() -> None:
+def test_columns_are_renamed_by_the_function() -> None:
     df = pd.DataFrame(columns=["STRUCTURE", "geo: Geopolitical entity"])
 
-    renamed_df = ColumnCodeRenamer().apply(df)
+    renamed_df = ColumnRenamer(eurostat.get_value_code).apply(df)
 
     assert list(renamed_df.columns) == ["STRUCTURE", "geo"]
 
 
-def test_repeated_column_codes_fail() -> None:
+def test_repeated_new_column_names_fail() -> None:
     df = pd.DataFrame(columns=["geo: Country", "geo: Region"])
 
-    with pytest.raises(DfFormatError, match=r"repeated codes \['geo'\]"):
-        ColumnCodeRenamer().apply(df)
+    with pytest.raises(DfFormatError, match=r"repeated names \['geo'\]"):
+        ColumnRenamer(eurostat.get_value_code).apply(df)
 
 
-def test_value_codes_keep_part_before_separator() -> None:
-    df = pd.DataFrame({"siec": ["CF_R: Renewable", "TOTAL"], "x": ["a", "b"]})
+def test_values_of_chosen_columns_are_replaced_by_their_part() -> None:
+    df = pd.DataFrame(
+        {"siec": ["CF_R: Renewable", "TOTAL"], "x": ["a: b", "c: d"]}
+    )
 
-    coded_df = ValueCodeExtractor(("siec",)).apply(df)
+    coded_df = ValueExtractor(("siec",), eurostat.get_value_code).apply(df)
 
     assert coded_df.to_dict("list") == {
         "siec": ["CF_R", "TOTAL"],
-        "x": ["a", "b"],
+        "x": ["a: b", "c: d"],
     }
 
 
-def test_value_labels_keep_part_after_separator() -> None:
+def test_value_labels_come_from_the_label_function() -> None:
     df = pd.DataFrame({"geo": ["EL: Greece", "XX"]})
 
-    labelled_df = ValueLabelExtractor(("geo",)).apply(df)
+    labelled_df = ValueExtractor(("geo",), eurostat.get_value_label).apply(df)
 
     assert labelled_df["geo"].tolist() == ["Greece", ""]
 
 
-def test_value_codes_use_given_separator() -> None:
-    df = pd.DataFrame({"geo": ["AT|Austria"]})
+def test_missing_values_are_not_passed_to_the_function() -> None:
+    df = pd.DataFrame({"geo": ["EL: Greece", None]}, dtype="str")
 
-    coded_df = ValueCodeExtractor(("geo",), separator="|").apply(df)
+    coded_df = ValueExtractor(("geo",), eurostat.get_value_code).apply(df)
 
-    assert coded_df["geo"].tolist() == ["AT"]
+    assert coded_df["geo"].tolist()[0] == "EL"
+    assert pd.isna(coded_df["geo"].tolist()[1])
 
 
-def test_value_codes_of_missing_column_fail() -> None:
-    with pytest.raises(DfFormatError, match="ValueCodeExtractor"):
-        ValueCodeExtractor(("siec",)).apply(pd.DataFrame(columns=["geo"]))
+def test_values_of_missing_column_fail() -> None:
+    df = pd.DataFrame(columns=["geo"])
+
+    with pytest.raises(DfFormatError, match="ValueExtractor"):
+        ValueExtractor(("siec",), eurostat.get_value_code).apply(df)
 
 
 def test_input_df_is_left_unchanged() -> None:
     df = pd.DataFrame({"geo": ["EL: Greece"]})
 
-    ValueLabelExtractor(("geo",)).apply(df)
+    ValueExtractor(("geo",), eurostat.get_value_label).apply(df)
 
     assert df["geo"].tolist() == ["EL: Greece"]
 
