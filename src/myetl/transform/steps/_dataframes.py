@@ -22,7 +22,7 @@ def order_columns(
         columns: Names of the observation columns in the right order.
 
     Returns:
-        Country, year, sub-period, series and value columns.
+        Country, year, sub-period, variable and value columns.
     """
     return long_df.loc[:, [*columns.observation_key, columns.value]]
 
@@ -30,7 +30,7 @@ def order_columns(
 def pivot_to_wide(
     long_df: pd.DataFrame, columns: ObservationColumns
 ) -> pd.DataFrame:
-    """Return one row per country and period, and one column per series.
+    """Return one row per country and period, one column per variable.
 
     Args:
         long_df: Observations.

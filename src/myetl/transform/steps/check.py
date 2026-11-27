@@ -65,7 +65,7 @@ class NonNegativeRule:
     """A variable is never below zero, e.g. generation.
 
     Attributes:
-        variable: The variable name.
+        target_variable: The variable name.
     """
 
     target_variable: str
@@ -77,7 +77,7 @@ class NonNegativeRule:
 
     @property
     def needed_variables(self) -> tuple[str, ...]:
-        """The variable names itself."""
+        """The variable itself."""
         return (self.target_variable,)
 
     def find_violations(self, wide_df: pd.DataFrame) -> pd.Series:
@@ -359,7 +359,7 @@ class GapReporter:
     columns: ObservationColumns = OBSERVATION_COLUMNS
 
     def apply(self, long_df: pd.DataFrame) -> pd.DataFrame:
-        """Log the gaps of ``df`` and return it unchanged.
+        """Log the gaps of ``long_df`` and return it unchanged.
 
         Args:
             long_df: Observations.

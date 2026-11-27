@@ -8,8 +8,8 @@ import pytest
 from myetl.transform.observations import (
     ANNUAL_SUB_PERIOD,
     OBSERVATION_COLUMNS,
+    DfFormatError,
     Period,
-    TableFormatError,
     parse_period,
     require_columns,
 )
@@ -41,7 +41,7 @@ def test_parse_period_reads_years_halves_and_months(
     ["", "08", "2008-S3", "2008-S0", "2008-00", "2008-13", "2008-Q1", "x"],
 )
 def test_parse_period_rejects_other_texts(period_text: str) -> None:
-    with pytest.raises(TableFormatError, match="expected a year"):
+    with pytest.raises(DfFormatError, match="expected a year"):
         parse_period(period_text)
 
 
@@ -58,12 +58,12 @@ def test_parse_period_uses_given_annual_sub_period() -> None:
 # --------------------------------------------------------------------
 
 
-def test_observation_key_is_country_year_sub_period_series() -> None:
+def test_observation_key_is_country_year_sub_period_variable() -> None:
     assert OBSERVATION_COLUMNS.observation_key == (
         "country",
         "year",
         "sub_period",
-        "series",
+        "variable",
     )
     assert OBSERVATION_COLUMNS.period_key == (
         "country",
@@ -73,24 +73,24 @@ def test_observation_key_is_country_year_sub_period_series() -> None:
 
 
 def test_require_columns_passes_when_all_present() -> None:
-    table = pd.DataFrame(columns=["a", "b", "c"])
+    df = pd.DataFrame(columns=["a", "b", "c"])
 
-    require_columns(table, ("a", "c"), "Step")
+    require_columns(df, ("a", "c"), "Step")
 
 
 def test_require_columns_names_missing_and_found() -> None:
-    table = pd.DataFrame(columns=["a", "b"])
+    df = pd.DataFrame(columns=["a", "b"])
 
-    with pytest.raises(TableFormatError) as raised:
-        require_columns(table, ("c", "a", "d"), "Step")
+    with pytest.raises(DfFormatError) as raised:
+        require_columns(df, ("c", "a", "d"), "Step")
 
     assert raised.value.problem == (
         "Step: missing columns ['c', 'd']; found ['a', 'b']"
     )
 
 
-def test_table_format_error_survives_pickling() -> None:
-    error = TableFormatError("Step: missing columns ['c']")
+def test_df_format_error_survives_pickling() -> None:
+    error = DfFormatError("Step: missing columns ['c']")
 
     # Safe: the bytes come from ``pickle.dumps`` one call earlier.
     restored_error = pickle.loads(pickle.dumps(error))  # noqa: S301

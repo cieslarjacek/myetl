@@ -71,7 +71,7 @@ class CsvReader:
             DfFormatError: If there are no responses.
         """
         _require_responses(responses, type(self).__name__)
-        csv_df = [
+        csv_dfs = [
             pd.read_csv(
                 io.BytesIO(response.content),
                 dtype=str,
@@ -81,7 +81,7 @@ class CsvReader:
             for response in responses
         ]
 
-        return pd.concat(csv_df, ignore_index=True)
+        return pd.concat(csv_dfs, ignore_index=True)
 
 
 @dataclass(frozen=True, slots=True)

@@ -51,7 +51,7 @@ class CountryFilter:
         columns = self.columns
         iso3_codes = long_df[columns.country].map(dict(self.country_keys))
         in_scope_df = long_df.assign(**{columns.country: iso3_codes})
-        in_scope_df = long_df[iso3_codes.notna()]
+        in_scope_df = in_scope_df[iso3_codes.notna()]
 
         require_unique(
             in_scope_df,

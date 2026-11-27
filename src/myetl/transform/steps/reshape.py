@@ -169,7 +169,7 @@ class ColumnMelter:
     columns: ObservationColumns = OBSERVATION_COLUMNS
 
     def apply(self, wide_df: pd.DataFrame) -> pd.DataFrame:
-        """Return the key columns plus a series and a value column.
+        """Return the key columns plus a variable and a value column.
 
         Args:
             wide_df: Wide data frame.
